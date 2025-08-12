@@ -8,6 +8,9 @@ import { useCustomers } from '@/context/customer-context';
 import { useProducts } from '@/context/product-context';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function OrdersPage() {
   const { orders } = useOrders();
@@ -25,12 +28,19 @@ export default function OrdersPage() {
     return total;
   };
 
-  if (orders.length === 0) {
-    return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-between space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight">Order History</h2>
-        </div>
+  return (
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Order History</h2>
+        <Link href="/route">
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Place Order
+          </Button>
+        </Link>
+      </div>
+
+      {orders.length === 0 ? (
         <Card>
             <CardContent className="pt-6">
                 <div className="text-center text-muted-foreground py-12">
@@ -38,55 +48,48 @@ export default function OrdersPage() {
                 </div>
             </CardContent>
         </Card>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Order History</h2>
-      </div>
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map(order => {
-                const customer = customers.find(c => c.id === order.customerId);
-                return (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono text-sm">#{order.id.slice(-6)}</TableCell>
-                    <TableCell>{customer?.name || 'Unknown Customer'}</TableCell>
-                    <TableCell>{format(new Date(order.date), "PPP")}</TableCell>
-                    <TableCell>
-                      <div className='flex flex-wrap gap-1'>
-                        {Array.from(order.items.entries()).map(([productId, quantity]) => {
-                          const product = products.find(p => p.id === productId);
-                          return (
-                            <Badge key={productId} variant="secondary">
-                              {product?.name || 'Unknown Product'} x {quantity}
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">R{getOrderTotal(order.items).toFixed(2)}</TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      ) : (
+        <Card>
+          <CardContent className="pt-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.map(order => {
+                  const customer = customers.find(c => c.id === order.customerId);
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-mono text-sm">#{order.id.slice(-6)}</TableCell>
+                      <TableCell>{customer?.name || 'Unknown Customer'}</TableCell>
+                      <TableCell>{format(new Date(order.date), "PPP")}</TableCell>
+                      <TableCell>
+                        <div className='flex flex-wrap gap-1'>
+                          {Array.from(order.items.entries()).map(([productId, quantity]) => {
+                            const product = products.find(p => p.id === productId);
+                            return (
+                              <Badge key={productId} variant="secondary">
+                                {product?.name || 'Unknown Product'} x {quantity}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">R{getOrderTotal(order.items).toFixed(2)}</TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
