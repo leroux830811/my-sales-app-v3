@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle } from "lucide-react";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search } from "lucide-react";
 import type { Customer, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
+import { Input } from "./ui/input";
 
 
 export default function CustomerRouteClient() {
@@ -39,11 +40,16 @@ export default function CustomerRouteClient() {
   const [noteText, setNoteText] = useState("");
   const { toast } = useToast();
   const [order, setOrder] = useState<Map<string, number>>(new Map());
+  const [productSearch, setProductSearch] = useState("");
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions
     .filter(i => i.customerId === selectedCustomerId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
@@ -102,15 +108,13 @@ export default function CustomerRouteClient() {
 
     const phoneNumber = "1234567890"; // IMPORTANT: Replace with the target WhatsApp number
     let message = `*New Order for ${selectedCustomer.name}*\n\n`;
-    message += "Products:\n";
     order.forEach((quantity, productId) => {
         const product = products.find(p => p.id === productId);
         if(product) {
-            message += `- ${product.name} (x${quantity})\n`;
+            message += `- ${product.name} (${product.size}) x${quantity}\n`;
         }
     });
-    message += "\nPlease confirm availability and total.";
-
+    
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
 
@@ -236,9 +240,19 @@ export default function CustomerRouteClient() {
                             </TabsContent>
                             <TabsContent value="order">
                                 <div className="mt-4">
+                                     <div className="relative mb-4">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Search products..."
+                                            className="w-full pl-8"
+                                            value={productSearch}
+                                            onChange={(e) => setProductSearch(e.target.value)}
+                                        />
+                                    </div>
                                      <h3 className="font-semibold mb-4">Product List</h3>
-                                     <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                        {products.map(product => {
+                                     <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+                                        {filteredProducts.map(product => {
                                             const quantity = order.get(product.id) || 0;
                                             return (
                                                 <div key={product.id} className="flex justify-between items-center">
@@ -258,9 +272,10 @@ export default function CustomerRouteClient() {
                                                 </div>
                                             )
                                         })}
+                                         {filteredProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
                                      </div>
                                      <Separator className="my-6"/>
-                                     <Button className="w-full" onClick={handleSendToWhatsApp}>
+                                     <Button className="w-full" onClick={handleSendToWhatsApp} disabled={order.size === 0}>
                                         <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp
                                      </Button>
                                 </div>
@@ -281,5 +296,3 @@ export default function CustomerRouteClient() {
     </div>
   );
 }
-
-    
