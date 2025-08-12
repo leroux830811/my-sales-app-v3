@@ -5,7 +5,7 @@ import Image from 'next/image';
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, FilePlus, ShoppingCart } from "lucide-react";
+import { FileDown, FilePlus, ShoppingCart, Weight } from "lucide-react";
 import type { Product } from "@/lib/data";
 import { Badge } from '@/components/ui/badge';
 import { exportToCsv } from '@/lib/csv';
@@ -41,6 +41,7 @@ export default function ProductsPage() {
                 description: row['Description'] || row['description'],
                 price: parseFloat(row['Price'] || row['price'] || 0),
                 stock: parseInt(row['Stock'] || row['stock'] || 0),
+                size: row['Size'] || row['size'] || 'N/A',
                 image: 'https://placehold.co/600x400.png" data-ai-hint="deli meat',
               }));
     
@@ -78,7 +79,7 @@ export default function ProductsPage() {
                         <DialogHeader>
                             <DialogTitle>Upload Product List</DialogTitle>
                             <DialogDescription>
-                                Import your product data by uploading an Excel file. The file should have columns for Name, Description, Price, and Stock.
+                                Import your product data by uploading an Excel file. The file should have columns for Name, Description, Price, Stock, and Size.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid w-full items-center gap-1.5 py-4">
@@ -110,6 +111,9 @@ export default function ProductsPage() {
                             <CardDescription>{product.description}</CardDescription>
                         </CardHeader>
                         <CardContent>
+                             <div className="flex justify-between items-center mb-2">
+                                <p className="text-sm text-muted-foreground flex items-center gap-1"><Weight className="h-4 w-4"/> {product.size}</p>
+                            </div>
                             <div className="flex justify-between items-center">
                                 <p className="text-2xl font-semibold">${product.price.toFixed(2)}</p>
                                 <Badge variant={product.stock > 100 ? "default" : "secondary"}>

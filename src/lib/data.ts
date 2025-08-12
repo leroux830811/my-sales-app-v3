@@ -16,6 +16,7 @@ export type Product = {
   price: number;
   stock: number;
   image: string;
+  size: string;
 };
 
 export type Interaction = {
@@ -42,12 +43,12 @@ export const customers: Customer[] = [
 ];
 
 export const products: Product[] = [
-  { id: 'p1', name: 'Prosciutto di Parma', description: 'Aged 18 months, sweet and delicate flavor.', price: 25.99, stock: 150, image: 'https://placehold.co/600x400.png', },
-  { id: 'p2', name: 'Spanish Chorizo', description: 'Smoky and spicy, perfect for tapas.', price: 12.50, stock: 200, image: 'https://placehold.co/600x400.png', },
-  { id: 'p3', name: 'Black Forest Ham', description: 'Naturally smoked over pine and fir.', price: 15.00, stock: 120, image: 'https://placehold.co/600x400.png', },
-  { id: 'p4', name: 'Genoa Salami', description: 'Mild salami with a hint of garlic and wine.', price: 9.75, stock: 300, image: 'https://placehold.co/600x400.png', },
-  { id: 'p5', name: 'Mortadella', description: 'Classic Italian luncheon meat with pistachios.', price: 8.50, stock: 180, image: 'https://placehold.co/600x400.png', },
-  { id: 'p6', name: 'Soppressata', description: 'Coarsely ground, rustic Italian salami.', price: 18.25, stock: 90, image: 'https://placehold.co/600x400.png', },
+  { id: 'p1', name: 'Prosciutto di Parma', description: 'Aged 18 months, sweet and delicate flavor.', price: 25.99, stock: 150, image: 'https://placehold.co/600x400.png', size: '1 lb' },
+  { id: 'p2', name: 'Spanish Chorizo', description: 'Smoky and spicy, perfect for tapas.', price: 12.50, stock: 200, image: 'https://placehold.co/600x400.png', size: '8 oz' },
+  { id: 'p3', name: 'Black Forest Ham', description: 'Naturally smoked over pine and fir.', price: 15.00, stock: 120, image: 'https://placehold.co/600x400.png', size: '1 lb' },
+  { id: 'p4', name: 'Genoa Salami', description: 'Mild salami with a hint of garlic and wine.', price: 9.75, stock: 300, image: 'https://placehold.co/600x400.png', size: '12 oz' },
+  { id: 'p5', name: 'Mortadella', description: 'Classic Italian luncheon meat with pistachios.', price: 8.50, stock: 180, image: 'https://placehold.co/600x400.png', size: '1 lb' },
+  { id: 'p6', name: 'Soppressata', description: 'Coarsely ground, rustic Italian salami.', price: 18.25, stock: 90, image: 'https://placehold.co/600x400.png', size: '10 oz' },
 ];
 
 export const interactions: Interaction[] = [
