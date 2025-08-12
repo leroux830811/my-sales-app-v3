@@ -1,10 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Upload, FilePlus } from "lucide-react";
-import { customers, interactions } from "@/lib/data";
+import { customers as initialCustomers, interactions, type Customer } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { exportToCsv } from '@/lib/csv';
 import {
@@ -19,11 +20,56 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const { toast } = useToast();
+
   const handleExport = () => {
     exportToCsv(customers, 'deli-sales-pro-customers.csv');
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json<any>(worksheet);
+
+          const newCustomers: Customer[] = json.map((row, index) => ({
+            id: `imported-${Date.now()}-${index}`,
+            name: row['Customer Name'] || row['name'],
+            town: row['Town'] || row['town'],
+            address: row['Address'] || row['address'],
+            contactPerson: row['Contact Person'] || row['contactPerson'],
+            phone: row['Phone'] || row['phone'],
+            email: row['Email'] || row['email'],
+            status: row['Status'] || row['status'] || 'Lead',
+          }));
+
+          setCustomers(prev => [...prev, ...newCustomers]);
+          toast({
+            title: "Success",
+            description: `${newCustomers.length} customers imported successfully.`,
+          });
+        } catch (error) {
+          console.error("Error parsing Excel file:", error);
+          toast({
+            title: "Import Failed",
+            description: "Could not parse the Excel file. Please check the format.",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const getStatusVariant = (status: "Active" | "Inactive" | "Lead") => {
@@ -64,17 +110,13 @@ export default function CustomersPage() {
               <DialogHeader>
                 <DialogTitle>Upload Customer List</DialogTitle>
                 <DialogDescription>
-                  Import your customer data by uploading a CSV file. Make sure the file has columns for name, town, address, contact person, phone, email, and status.
+                  Import your customer data by uploading an Excel file. Make sure the file has columns for Customer Name, Town, Address, Contact Person, Phone, Email, and Status.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid w-full items-center gap-1.5 py-4">
-                  <Label htmlFor="customer-file">CSV File</Label>
-                  <Input id="customer-file" type="file" accept=".csv" />
+                  <Label htmlFor="customer-file">Excel File</Label>
+                  <Input id="customer-file" type="file" accept=".xlsx, .xls" onChange={handleFileImport} />
               </div>
-              <Button className="w-full mt-2">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload and Import
-              </Button>
             </DialogContent>
           </Dialog>
           <Button onClick={handleExport}>
