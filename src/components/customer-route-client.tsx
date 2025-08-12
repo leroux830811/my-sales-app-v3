@@ -2,21 +2,28 @@
 
 import { useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle } from "lucide-react";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown } from "lucide-react";
 import type { Customer, Interaction, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { useCustomers } from "@/context/customer-context";
+import { cn } from "@/lib/utils";
 
 type CustomerRouteClientProps = {
   interactions: Interaction[];
@@ -29,13 +36,25 @@ export default function CustomerRouteClient({
 }: CustomerRouteClientProps) {
   const { customers } = useCustomers();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions.filter(i => i.customerId === selectedCustomerId);
 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
+    setOpen(false);
   };
+
+  if (!customers) {
+    return (
+        <Card className="flex items-center justify-center h-96">
+            <div className="text-center text-muted-foreground">
+                <p>Loading customers...</p>
+            </div>
+        </Card>
+    )
+  }
 
   return (
     <div>
@@ -45,18 +64,46 @@ export default function CustomerRouteClient({
             <CardDescription>Choose a customer from the list to view their details and plan your route.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Select onValueChange={handleCustomerChange}>
-                <SelectTrigger className="w-full md:w-1/2">
-                <SelectValue placeholder="Select a customer..." />
-                </SelectTrigger>
-                <SelectContent>
-                {customers && customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name} - {customer.town}
-                    </SelectItem>
-                ))}
-                </SelectContent>
-            </Select>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between md:w-1/2"
+              >
+                {selectedCustomerId
+                  ? customers.find((customer) => customer.id === selectedCustomerId)?.name
+                  : "Select a customer..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0 md:w-[--radix-popover-trigger-width]">
+              <Command>
+                <CommandInput placeholder="Search customer..." />
+                <CommandList>
+                  <CommandEmpty>No customer found.</CommandEmpty>
+                  <CommandGroup>
+                    {customers.map((customer) => (
+                      <CommandItem
+                        key={customer.id}
+                        value={customer.name}
+                        onSelect={() => handleCustomerChange(customer.id)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedCustomerId === customer.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {customer.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </CardContent>
       </Card>
       
