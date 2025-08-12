@@ -27,16 +27,12 @@ import { useInteractions } from "@/context/interaction-context";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useProducts } from "@/context/product-context";
 
 
-type CustomerRouteClientProps = {
-  products: Product[];
-};
-
-export default function CustomerRouteClient({
-  products,
-}: CustomerRouteClientProps) {
+export default function CustomerRouteClient() {
   const { customers } = useCustomers();
+  const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);

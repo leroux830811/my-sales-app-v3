@@ -21,6 +21,7 @@ import type { Customer, Product } from "@/lib/data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useCustomers } from "@/context/customer-context";
+import { useProducts } from "@/context/product-context";
 
 const formSchema = z.object({
   customerId: z.string().min(1, "Please select a customer."),
@@ -29,12 +30,9 @@ const formSchema = z.object({
   salesData: z.string().min(1, "Sales data is required."),
 });
 
-type EmailGeneratorClientProps = {
-  products: Product[];
-};
-
-export default function EmailGeneratorClient({ products }: EmailGeneratorClientProps) {
+export default function EmailGeneratorClient() {
   const { customers } = useCustomers();
+  const { products } = useProducts();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState("");
   const { toast } = useToast();
@@ -171,7 +169,7 @@ export default function EmailGeneratorClient({ products }: EmailGeneratorClientP
                       <Textarea placeholder="e.g., Prefers spicy items, high-value client" {...field} rows={3}/>
                     </FormControl>
                     <FormMessage />
-                  </Now, when you import new customers on the "Customers" page, the list will be updated, and the "Route" page will automatically show the same, complete list of customers. Let me know if you have any other questions.
+                  </FormItem>
                 )}
               />
               <Button type="submit" disabled={isLoading} className="w-full">

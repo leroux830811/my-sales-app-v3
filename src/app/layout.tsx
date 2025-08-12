@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Toaster } from '@/components/ui/toaster';
 import { CustomerProvider } from '@/context/customer-context';
 import { InteractionProvider } from '@/context/interaction-context';
+import { ProductProvider } from '@/context/product-context';
 
 export const metadata: Metadata = {
   title: 'Deli Sales Pro',
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <CustomerProvider>
           <InteractionProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            <ProductProvider>
+              <AppLayout>
+                {children}
+              </AppLayout>
+            </ProductProvider>
           </InteractionProvider>
         </CustomerProvider>
         <Toaster />
