@@ -34,6 +34,11 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
+    href: "/route",
+    label: "Route",
+    icon: Map,
+  },
+  {
     href: "/customers",
     label: "Customers",
     icon: Users,
@@ -52,11 +57,6 @@ const menuItems = [
     href: "/email-generator",
     label: "Email Generator",
     icon: Mail,
-  },
-  {
-    href: "/route",
-    label: "Route",
-    icon: Map,
   },
   {
     href: "/import",
