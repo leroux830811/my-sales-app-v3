@@ -6,11 +6,12 @@ export type GeneralPhoto = {
   id: string;
   imageDataUri: string;
   createdAt: string;
+  description?: string;
 };
 
 type PhotoContextType = {
   photos: GeneralPhoto[];
-  addPhoto: (imageDataUri: string) => void;
+  addPhoto: (imageDataUri: string, description?: string) => void;
 };
 
 const PhotoContext = createContext<PhotoContextType | undefined>(undefined);
@@ -18,11 +19,12 @@ const PhotoContext = createContext<PhotoContextType | undefined>(undefined);
 export function PhotoProvider({ children }: { children: ReactNode }) {
   const [photos, setPhotos] = useState<GeneralPhoto[]>([]);
 
-  const addPhoto = (imageDataUri: string) => {
+  const addPhoto = (imageDataUri: string, description?: string) => {
     const newPhoto: GeneralPhoto = {
       id: `photo-${Date.now()}`,
       imageDataUri,
       createdAt: new Date().toISOString(),
+      description,
     };
     setPhotos(prev => [newPhoto, ...prev]);
   };

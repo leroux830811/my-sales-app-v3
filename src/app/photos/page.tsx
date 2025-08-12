@@ -10,7 +10,7 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { usePhotos } from '@/context/photo-context';
 import { useToast } from '@/hooks/use-toast';
 import { CameraCapture } from '@/components/camera-capture';
@@ -22,7 +22,7 @@ export default function PhotosPage() {
     const { toast } = useToast();
 
     const handleSavePhoto = (imageDataUri: string) => {
-        addPhoto(imageDataUri);
+        addPhoto(imageDataUri, 'General Photo');
         setIsCameraOpen(false);
         toast({
             title: "Photo Saved",
@@ -55,13 +55,14 @@ export default function PhotosPage() {
                                 <div className="relative h-64 w-full">
                                     <Image 
                                         src={photo.imageDataUri} 
-                                        alt={`Photo taken on ${photo.createdAt}`}
+                                        alt={photo.description || `Photo taken on ${photo.createdAt}`}
                                         fill
                                         className="rounded-t-md object-cover"
                                     />
                                 </div>
                             </CardContent>
-                            <CardFooter className="p-4">
+                            <CardFooter className="p-4 flex flex-col items-start">
+                               {photo.description && <p className='font-medium'>{photo.description}</p>}
                                <p className="text-sm text-muted-foreground">
                                  {format(new Date(photo.createdAt), "PPP p")}
                                </p>

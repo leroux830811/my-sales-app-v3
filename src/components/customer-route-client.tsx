@@ -33,6 +33,7 @@ import { Input } from "./ui/input";
 import { useOrders } from "@/context/order-context";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { CameraCapture } from "./camera-capture";
+import { usePhotos } from "@/context/photo-context";
 
 
 export default function CustomerRouteClient() {
@@ -40,6 +41,7 @@ export default function CustomerRouteClient() {
   const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
   const { addOrder } = useOrders();
+  const { addPhoto } = usePhotos();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
@@ -47,6 +49,7 @@ export default function CustomerRouteClient() {
   const [order, setOrder] = useState<Map<string, number>>(new Map());
   const [productSearch, setProductSearch] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraPurpose, setCameraPurpose] = useState<'storefront' | 'interaction' | null>(null);
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions
@@ -134,14 +137,23 @@ export default function CustomerRouteClient() {
   };
   
   const handleSavePhoto = (imageDataUri: string) => {
-    if (selectedCustomerId) {
-        updateCustomerImage(selectedCustomerId, imageDataUri);
-        setIsCameraOpen(false);
-        toast({
-            title: "Photo Saved",
-            description: "The photo has been saved for this customer."
-        })
+    if (selectedCustomerId && selectedCustomer) {
+        if (cameraPurpose === 'storefront') {
+            updateCustomerImage(selectedCustomerId, imageDataUri);
+            toast({
+                title: "Storefront Photo Saved",
+                description: "The photo has been saved for this customer."
+            })
+        } else if (cameraPurpose === 'interaction') {
+            addPhoto(imageDataUri, `Interaction photo for ${selectedCustomer.name}`);
+             toast({
+                title: "Interaction Photo Saved",
+                description: "The photo has been saved to the general photo gallery."
+            })
+        }
     }
+    setIsCameraOpen(false);
+    setCameraPurpose(null);
   }
 
   if (!customers || !products) {
@@ -230,7 +242,7 @@ export default function CustomerRouteClient() {
                                 )}
                             </div>
                             <DialogTrigger asChild>
-                                <Button className="w-full mt-4"><Camera className="mr-2 h-4 w-4"/> Take Photo</Button>
+                                <Button className="w-full mt-4" onClick={() => setCameraPurpose('storefront')}><Camera className="mr-2 h-4 w-4"/> Take Storefront Photo</Button>
                             </DialogTrigger>
                              <Button className="w-full mt-4" variant="outline">Get Directions</Button>
                         </CardContent>
@@ -253,7 +265,15 @@ export default function CustomerRouteClient() {
                                           value={noteText}
                                           onChange={(e) => setNoteText(e.target.value)}
                                         />
-                                        <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
+                                            <DialogTrigger asChild>
+                                                <Button size="sm" variant="outline" onClick={() => setCameraPurpose('interaction')}>
+                                                    <Camera className="mr-2 h-4 w-4"/>
+                                                    Add Photo
+                                                </Button>
+                                            </DialogTrigger>
+                                        </div>
                                     </div>
                                     <Separator className="my-6"/>
                                     <div>
