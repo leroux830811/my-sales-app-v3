@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CustomerRouteClient from "@/components/customer-route-client";
+import { customers, interactions, products } from "@/lib/data";
 
 export default function RoutePage() {
   return (
@@ -6,19 +7,7 @@ export default function RoutePage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Customer Route</h2>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Route Planner</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            This page will display a map with your customers' locations to help you plan your daily routes. You'll be able to view customer details, add notes, and place orders directly from the map.
-          </p>
-          <div className="mt-4 h-96 w-full bg-muted rounded-md flex items-center justify-center">
-            <p className="text-muted-foreground">Map will be implemented here.</p>
-          </div>
-        </CardContent>
-      </Card>
+      <CustomerRouteClient customers={customers} interactions={interactions} products={products} />
     </div>
   );
 }
