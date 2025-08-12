@@ -30,7 +30,7 @@ export default function CustomerRouteClient({
   const { customers } = useCustomers();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
+  const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions.filter(i => i.customerId === selectedCustomerId);
 
   const handleCustomerChange = (customerId: string) => {
@@ -50,7 +50,7 @@ export default function CustomerRouteClient({
                 <SelectValue placeholder="Select a customer..." />
                 </SelectTrigger>
                 <SelectContent>
-                {customers.map((customer) => (
+                {customers && customers.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
                     {customer.name} - {customer.town}
                     </SelectItem>
