@@ -1,12 +1,19 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Users, Activity, Bell, Package } from "lucide-react";
-import { interactions, reminders, customers } from "@/lib/data";
+import { reminders } from "@/lib/data";
 import { format } from "date-fns";
+import { useCustomers } from "@/context/customer-context";
+import { useInteractions } from "@/context/interaction-context";
 
 export default function DashboardPage() {
+  const { customers } = useCustomers();
+  const { interactions } = useInteractions();
+
   const totalSales = 125430.50;
   const newCustomers = 12;
   const productsSold = 432;

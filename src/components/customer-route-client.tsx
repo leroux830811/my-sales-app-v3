@@ -23,27 +23,55 @@ import type { Customer, Interaction, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { useCustomers } from "@/context/customer-context";
+import { useInteractions } from "@/context/interaction-context";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+
 
 type CustomerRouteClientProps = {
-  interactions: Interaction[];
   products: Product[];
 };
 
 export default function CustomerRouteClient({
-  interactions,
   products,
 }: CustomerRouteClientProps) {
   const { customers } = useCustomers();
+  const { interactions, addInteraction } = useInteractions();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const { toast } = useToast();
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
-  const customerInteractions = interactions.filter(i => i.customerId === selectedCustomerId);
+  const customerInteractions = interactions
+    .filter(i => i.customerId === selectedCustomerId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
     setOpen(false);
+  };
+
+  const handleSaveNote = () => {
+    if (!selectedCustomerId || !noteText.trim()) {
+        toast({
+            title: "Note is empty",
+            description: "Please write a note before saving.",
+            variant: "destructive"
+        })
+        return;
+    };
+    addInteraction({
+      customerId: selectedCustomerId,
+      notes: noteText,
+      type: "Meeting", // Defaulting to meeting, can be changed later
+    });
+    setNoteText("");
+    toast({
+        title: "Note Saved",
+        description: "Your interaction has been logged."
+    })
   };
 
   if (!customers) {
@@ -141,8 +169,13 @@ export default function CustomerRouteClient({
                             <TabsContent value="notes">
                                 <div className="mt-4">
                                     <h3 className="font-semibold mb-2">Log New Interaction</h3>
-                                    <Textarea placeholder={`Add a note about ${selectedCustomer.name}...`} className="mb-2"/>
-                                    <Button size="sm">Save Note</Button>
+                                    <Textarea 
+                                      placeholder={`Add a note about ${selectedCustomer.name}...`} 
+                                      className="mb-2"
+                                      value={noteText}
+                                      onChange={(e) => setNoteText(e.target.value)}
+                                    />
+                                    <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
                                 </div>
                                 <Separator className="my-6"/>
                                 <div>
@@ -150,7 +183,7 @@ export default function CustomerRouteClient({
                                     <div className="space-y-4">
                                         {customerInteractions.map(interaction => (
                                             <div key={interaction.id} className="text-sm">
-                                                <p className="font-medium">{interaction.date} - {interaction.type}</p>
+                                                <p className="font-medium">{format(new Date(interaction.date), "PPP")} - {interaction.type}</p>
                                                 <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
                                             </div>
                                         ))}

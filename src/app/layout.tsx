@@ -3,6 +3,7 @@ import './globals.css';
 import { AppLayout } from '@/components/app-layout';
 import { Toaster } from '@/components/ui/toaster';
 import { CustomerProvider } from '@/context/customer-context';
+import { InteractionProvider } from '@/context/interaction-context';
 
 export const metadata: Metadata = {
   title: 'Deli Sales Pro',
@@ -26,9 +27,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <CustomerProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
+          <InteractionProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </InteractionProvider>
         </CustomerProvider>
         <Toaster />
       </body>
