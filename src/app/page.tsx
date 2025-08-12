@@ -6,12 +6,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Users, Activity, Bell, Package } from "lucide-react";
-import { format } from "date-fns";
+import { format, subDays, startOfDay } from "date-fns";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
 import { useProducts } from "@/context/product-context";
 import { useOrders } from "@/context/order-context";
 import { useReminders } from "@/context/reminder-context";
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 export default function DashboardPage() {
   const { customers } = useCustomers();
@@ -20,19 +21,37 @@ export default function DashboardPage() {
   const { orders } = useOrders();
   const { reminders } = useReminders();
 
-  const totalSales = orders.reduce((acc, order) => {
-    let orderTotal = 0;
-    order.items.forEach((quantity, productId) => {
+  const getOrderTotal = (orderItems: Map<string, number>) => {
+    let total = 0;
+    orderItems.forEach((quantity, productId) => {
         const product = products.find(p => p.id === productId);
         if (product) {
-            orderTotal += product.price * quantity;
+            total += product.price * quantity;
         }
     });
-    return acc + orderTotal;
-  }, 0);
+    return total;
+  };
+
+  const totalSales = orders.reduce((acc, order) => acc + getOrderTotal(order.items), 0);
   
+  const salesByDay = orders.reduce((acc, order) => {
+    const date = format(startOfDay(new Date(order.date)), 'yyyy-MM-dd');
+    const total = getOrderTotal(order.items);
+    acc[date] = (acc[date] || 0) + total;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const chartData = Array.from({ length: 7 }).map((_, i) => {
+    const date = subDays(new Date(), i);
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    const shortDate = format(date, 'EEE');
+    return {
+      date: shortDate,
+      sales: salesByDay[formattedDate] || 0
+    };
+  }).reverse();
+
   const newCustomers = customers.filter(c => c.status === 'Lead').length;
-  const productsSoldCount = 432;
   const interactionCount = interactions.length;
   const upcomingReminders = reminders.filter(r => !r.isComplete);
 
@@ -51,6 +70,19 @@ export default function DashboardPage() {
             <CardContent>
                 <div className="text-2xl font-bold">R{totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                 <p className="text-xs text-muted-foreground">Based on completed orders</p>
+                <div className="h-[80px] w-full mt-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <Area type="monotone" dataKey="sales" stroke="hsl(var(--primary))" fill="url(#colorSales)" strokeWidth={2} />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
             </CardContent>
             </Card>
         </Link>
