@@ -58,11 +58,6 @@ const menuItems = [
     label: "Email Generator",
     icon: Mail,
   },
-  {
-    href: "/import",
-    label: "Import Customers",
-    icon: FilePlus,
-  },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
