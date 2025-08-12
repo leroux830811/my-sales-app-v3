@@ -25,6 +25,7 @@ import {
   Map,
   FilePlus,
   ShoppingCart,
+  Camera,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -58,6 +59,11 @@ const menuItems = [
     href: "/reminders",
     label: "Reminders",
     icon: Bell,
+  },
+  {
+    href: "/photos",
+    label: "Photos",
+    icon: Camera,
   },
   {
     href: "/email-generator",
