@@ -170,7 +170,7 @@ export default function ProductsPage() {
                                 <p className="text-sm text-muted-foreground flex items-center gap-1"><Weight className="h-4 w-4"/> {product.size}</p>
                             </div>
                             <div className="flex justify-between items-center">
-                                <p className="text-2xl font-semibold">${product.price.toFixed(2)}</p>
+                                <p className="text-2xl font-semibold">R{product.price.toFixed(2)}</p>
                                 <Badge variant={product.stock > 100 ? "default" : "secondary"}>
                                     {product.stock} in stock
                                 </Badge>

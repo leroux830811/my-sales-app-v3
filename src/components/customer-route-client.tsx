@@ -258,7 +258,7 @@ export default function CustomerRouteClient() {
                                                 <div key={product.id} className="flex justify-between items-center">
                                                     <div>
                                                         <p className="font-medium">{product.name}</p>
-                                                        <p className="text-sm text-muted-foreground">${product.price.toFixed(2)} / {product.size}</p>
+                                                        <p className="text-sm text-muted-foreground">R{product.price.toFixed(2)} / {product.size}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         {quantity > 0 && (

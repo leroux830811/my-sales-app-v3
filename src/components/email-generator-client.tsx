@@ -43,7 +43,7 @@ export default function EmailGeneratorClient() {
       customerId: "",
       productId: "",
       pastOrders: "Various cold cuts, cheeses, and olives.",
-      salesData: "Customer prefers Italian meats, average order value is $150.",
+      salesData: "Customer prefers Italian meats, average order value is R150.",
     },
   });
 
@@ -112,7 +112,7 @@ export default function EmailGeneratorClient() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a customer to target" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {customers.map((c) => (

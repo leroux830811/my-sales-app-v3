@@ -31,7 +31,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalSales.toLocaleString()}</div>
+            <div className="text-2xl font-bold">R{totalSales.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">+10.2% from last month</p>
           </CardContent>
         </Card>
