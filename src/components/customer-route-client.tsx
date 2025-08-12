@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera } from "lucide-react";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera, Navigation } from "lucide-react";
 import type { Customer, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
@@ -38,7 +39,7 @@ import { useReminders } from "@/context/reminder-context";
 
 
 export default function CustomerRouteClient() {
-  const { customers, updateCustomerImage } = useCustomers();
+  const { customers, updateCustomerImage, updateCustomerAddress } = useCustomers();
   const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
   const { addOrder } = useOrders();
@@ -169,6 +170,31 @@ export default function CustomerRouteClient() {
     setIsCameraOpen(false);
     setCameraPurpose(null);
   }
+  
+  const handlePinLocation = () => {
+    if (!selectedCustomerId) {
+      toast({ title: "No customer selected", variant: "destructive" });
+      return;
+    }
+    if (!navigator.geolocation) {
+      toast({ title: "Geolocation not supported", description: "Your browser does not support geolocation.", variant: "destructive" });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newAddress = `Pinned Location: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        updateCustomerAddress(selectedCustomerId, newAddress);
+        toast({ title: "Location Pinned!", description: `Address updated to: ${newAddress}` });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast({ title: "Could not get location", description: "Please ensure location services are enabled.", variant: "destructive" });
+      }
+    );
+  };
+
 
   if (!customers || !products) {
     return (
@@ -248,17 +274,21 @@ export default function CustomerRouteClient() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-64 bg-muted rounded-md flex items-center justify-center relative">
+                            <div className="h-64 bg-muted rounded-md flex items-center justify-center relative mb-4">
                                 {selectedCustomer.storefrontImage ? (
                                     <Image src={selectedCustomer.storefrontImage} alt="Store front" layout="fill" objectFit="cover" className="rounded-md"/>
                                 ) : (
                                     <p className="text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4"/> Storefront Photo</p>
                                 )}
                             </div>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 mb-4">
+                                <Navigation className="h-4 w-4"/> 
+                                {selectedCustomer.address}
+                            </p>
                             <DialogTrigger asChild>
-                                <Button className="w-full mt-4" onClick={() => setCameraPurpose('storefront')}><Camera className="mr-2 h-4 w-4"/> Take Storefront Photo</Button>
+                                <Button className="w-full mb-2" onClick={() => setCameraPurpose('storefront')}><Camera className="mr-2 h-4 w-4"/> Take Storefront Photo</Button>
                             </DialogTrigger>
-                             <Button className="w-full mt-4" variant="outline">Get Directions</Button>
+                             <Button className="w-full" variant="outline" onClick={handlePinLocation}><MapPin className="mr-2 h-4 w-4"/> Pin Location</Button>
                         </CardContent>
                     </Card>
                 </div>

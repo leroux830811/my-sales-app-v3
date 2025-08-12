@@ -9,6 +9,7 @@ type CustomerContextType = {
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
   updateCustomerImage: (customerId: string, imageUrl: string) => void;
+  updateCustomerAddress: (customerId: string, address: string) => void;
 };
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
@@ -24,8 +25,16 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateCustomerAddress = (customerId: string, address: string) => {
+    setCustomers(prev => 
+      prev.map(c => 
+        c.id === customerId ? { ...c, address } : c
+      )
+    );
+  };
+
   return (
-    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage }}>
+    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage, updateCustomerAddress }}>
       {children}
     </CustomerContext.Provider>
   );
