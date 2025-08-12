@@ -34,6 +34,13 @@ export type Reminder = {
   notes: string;
 };
 
+export type Order = {
+    id: string;
+    customerId: string;
+    date: string;
+    items: Map<string, number>; // productId -> quantity
+}
+
 export const customers: Customer[] = [];
 
 export const products: Product[] = [];
@@ -41,3 +48,5 @@ export const products: Product[] = [];
 export const interactions: Interaction[] = [];
 
 export const reminders: Reminder[] = [];
+
+export const orders: Order[] = [];

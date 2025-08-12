@@ -24,6 +24,7 @@ import {
   Sandwich,
   Map,
   FilePlus,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -37,6 +38,11 @@ const menuItems = [
     href: "/route",
     label: "Route",
     icon: Map,
+  },
+  {
+    href: "/orders",
+    label: "Orders",
+    icon: ShoppingCart,
   },
   {
     href: "/customers",

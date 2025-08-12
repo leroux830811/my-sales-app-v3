@@ -29,12 +29,14 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
 import { Input } from "./ui/input";
+import { useOrders } from "@/context/order-context";
 
 
 export default function CustomerRouteClient() {
   const { customers } = useCustomers();
   const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
+  const { addOrder } = useOrders();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
@@ -106,6 +108,11 @@ export default function CustomerRouteClient() {
         return;
     }
 
+    addOrder({
+        customerId: selectedCustomer.id,
+        items: order,
+    });
+
     const phoneNumber = "1234567890"; // IMPORTANT: Replace with the target WhatsApp number
     let message = `*New Order for ${selectedCustomer.name}*\n\n`;
     order.forEach((quantity, productId) => {
@@ -118,7 +125,8 @@ export default function CustomerRouteClient() {
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
 
-    toast({ title: "Order Sent", description: "The order has been formatted for WhatsApp." });
+    toast({ title: "Order Sent & Saved", description: "The order has been saved and formatted for WhatsApp." });
+    setOrder(new Map());
   };
   
   if (!customers || !products) {
@@ -276,7 +284,7 @@ export default function CustomerRouteClient() {
                                      </div>
                                      <Separator className="my-6"/>
                                      <Button className="w-full" onClick={handleSendToWhatsApp} disabled={order.size === 0}>
-                                        <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp
+                                        <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp & Save Order
                                      </Button>
                                 </div>
                             </TabsContent>
