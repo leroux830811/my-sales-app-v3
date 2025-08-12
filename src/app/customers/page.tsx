@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Upload, FilePlus } from "lucide-react";
-import { customers as initialCustomers, interactions, type Customer } from "@/lib/data";
+import { interactions, type Customer } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { exportToCsv } from '@/lib/csv';
 import {
@@ -21,10 +21,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useCustomers } from '@/context/customer-context';
 
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const { customers, setCustomers } = useCustomers();
   const { toast } = useToast();
 
   const handleExport = () => {

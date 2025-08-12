@@ -1,5 +1,5 @@
 import EmailGeneratorClient from "@/components/email-generator-client";
-import { customers, products } from "@/lib/data";
+import { products } from "@/lib/data";
 
 export default function EmailGeneratorPage() {
   return (
@@ -12,7 +12,7 @@ export default function EmailGeneratorPage() {
       <p className="text-muted-foreground">
         Generate personalized email templates for customer outreach based on their sales history and product interests.
       </p>
-      <EmailGeneratorClient customers={customers} products={products} />
+      <EmailGeneratorClient products={products} />
     </div>
   );
 }

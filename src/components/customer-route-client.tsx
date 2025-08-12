@@ -16,18 +16,18 @@ import { MapPin, StickyNote, Package, PlusCircle } from "lucide-react";
 import type { Customer, Interaction, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
+import { useCustomers } from "@/context/customer-context";
 
 type CustomerRouteClientProps = {
-  customers: Customer[];
   interactions: Interaction[];
   products: Product[];
 };
 
 export default function CustomerRouteClient({
-  customers,
   interactions,
   products,
 }: CustomerRouteClientProps) {
+  const { customers } = useCustomers();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);

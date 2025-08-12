@@ -20,6 +20,7 @@ import { LoaderCircle, Wand2, Copy } from "lucide-react";
 import type { Customer, Product } from "@/lib/data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useCustomers } from "@/context/customer-context";
 
 const formSchema = z.object({
   customerId: z.string().min(1, "Please select a customer."),
@@ -29,11 +30,11 @@ const formSchema = z.object({
 });
 
 type EmailGeneratorClientProps = {
-  customers: Customer[];
   products: Product[];
 };
 
-export default function EmailGeneratorClient({ customers, products }: EmailGeneratorClientProps) {
+export default function EmailGeneratorClient({ products }: EmailGeneratorClientProps) {
+  const { customers } = useCustomers();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedEmail, setGeneratedEmail] = useState("");
   const { toast } = useToast();
@@ -170,7 +171,7 @@ export default function EmailGeneratorClient({ customers, products }: EmailGener
                       <Textarea placeholder="e.g., Prefers spicy items, high-value client" {...field} rows={3}/>
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                  </Now, when you import new customers on the "Customers" page, the list will be updated, and the "Route" page will automatically show the same, complete list of customers. Let me know if you have any other questions.
                 )}
               />
               <Button type="submit" disabled={isLoading} className="w-full">

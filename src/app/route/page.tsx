@@ -1,5 +1,5 @@
 import CustomerRouteClient from "@/components/customer-route-client";
-import { customers, interactions, products } from "@/lib/data";
+import { interactions, products } from "@/lib/data";
 
 export default function RoutePage() {
   return (
@@ -7,7 +7,7 @@ export default function RoutePage() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Customer Route</h2>
       </div>
-      <CustomerRouteClient customers={customers} interactions={interactions} products={products} />
+      <CustomerRouteClient interactions={interactions} products={products} />
     </div>
   );
 }
