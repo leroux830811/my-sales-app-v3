@@ -18,8 +18,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown } from "lucide-react";
-import type { Customer, Interaction, Product } from "@/lib/data";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle } from "lucide-react";
+import type { Customer, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { useCustomers } from "@/context/customer-context";
@@ -38,6 +38,7 @@ export default function CustomerRouteClient() {
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const { toast } = useToast();
+  const [order, setOrder] = useState<Map<string, number>>(new Map());
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions
@@ -46,6 +47,7 @@ export default function CustomerRouteClient() {
 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
+    setOrder(new Map()); // Reset order when customer changes
     setOpen(false);
   };
 
@@ -70,11 +72,56 @@ export default function CustomerRouteClient() {
     })
   };
 
-  if (!customers) {
+  const handleAddToOrder = (productId: string) => {
+    const newOrder = new Map(order);
+    const currentQuantity = newOrder.get(productId) || 0;
+    newOrder.set(productId, currentQuantity + 1);
+    setOrder(newOrder);
+  }
+
+  const handleRemoveFromOrder = (productId: string) => {
+    const newOrder = new Map(order);
+    const currentQuantity = newOrder.get(productId);
+    if (currentQuantity && currentQuantity > 1) {
+        newOrder.set(productId, currentQuantity - 1);
+    } else if (currentQuantity === 1) {
+        newOrder.delete(productId);
+    }
+    setOrder(newOrder);
+  }
+
+  const handleSendToWhatsApp = () => {
+    if (!selectedCustomer) {
+        toast({ title: "No customer selected", variant: "destructive" });
+        return;
+    }
+    if (order.size === 0) {
+        toast({ title: "Order is empty", description: "Please add products to the order first.", variant: "destructive" });
+        return;
+    }
+
+    const phoneNumber = "1234567890"; // IMPORTANT: Replace with the target WhatsApp number
+    let message = `*New Order for ${selectedCustomer.name}*\n\n`;
+    message += "Products:\n";
+    order.forEach((quantity, productId) => {
+        const product = products.find(p => p.id === productId);
+        if(product) {
+            message += `- ${product.name} (x${quantity})\n`;
+        }
+    });
+    message += "\nPlease confirm availability and total.";
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+
+    toast({ title: "Order Sent", description: "The order has been formatted for WhatsApp." });
+  };
+  
+  if (!customers || !products) {
     return (
         <Card className="flex items-center justify-center h-96">
             <div className="text-center text-muted-foreground">
-                <p>Loading customers...</p>
+                <p>Loading data...</p>
             </div>
         </Card>
     )
@@ -189,20 +236,33 @@ export default function CustomerRouteClient() {
                             </TabsContent>
                             <TabsContent value="order">
                                 <div className="mt-4">
-                                     <h3 className="font-semibold mb-4">New Order Form</h3>
-                                     <div className="space-y-4">
-                                        {products.slice(0,3).map(product => (
-                                            <div key={product.id} className="flex justify-between items-center">
-                                                <div>
-                                                    <p className="font-medium">{product.name}</p>
-                                                    <p className="text-sm text-muted-foreground">${product.price.toFixed(2)}</p>
+                                     <h3 className="font-semibold mb-4">Product List</h3>
+                                     <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                        {products.map(product => {
+                                            const quantity = order.get(product.id) || 0;
+                                            return (
+                                                <div key={product.id} className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="font-medium">{product.name}</p>
+                                                        <p className="text-sm text-muted-foreground">${product.price.toFixed(2)} / {product.size}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {quantity > 0 && (
+                                                            <>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveFromOrder(product.id)}><MinusCircle /></Button>
+                                                                <span className="font-bold w-4 text-center">{quantity}</span>
+                                                            </>
+                                                        )}
+                                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleAddToOrder(product.id)}><PlusCircle /></Button>
+                                                    </div>
                                                 </div>
-                                                <Button variant="outline" size="sm"><PlusCircle className="mr-2"/> Add</Button>
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                      </div>
                                      <Separator className="my-6"/>
-                                     <Button className="w-full">Submit Order</Button>
+                                     <Button className="w-full" onClick={handleSendToWhatsApp}>
+                                        <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp
+                                     </Button>
                                 </div>
                             </TabsContent>
                         </Tabs>
@@ -221,3 +281,5 @@ export default function CustomerRouteClient() {
     </div>
   );
 }
+
+    
