@@ -1,10 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileDown, MoreHorizontal, Upload, FilePlus } from "lucide-react";
+import { FileDown, MoreHorizontal, Upload, FilePlus, Search } from "lucide-react";
 import { interactions, type Customer } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { exportToCsv } from '@/lib/csv';
@@ -27,6 +27,7 @@ import { useCustomers } from '@/context/customer-context';
 export default function CustomersPage() {
   const { customers, setCustomers } = useCustomers();
   const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleExport = () => {
     exportToCsv(customers, 'deli-sales-pro-customers.csv');
@@ -95,6 +96,12 @@ export default function CustomersPage() {
     return "N/A";
   }
 
+  const filteredCustomers = customers.filter(customer =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.town.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -126,6 +133,16 @@ export default function CustomersPage() {
           </Button>
         </div>
       </div>
+      <div className="relative mb-4">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+              type="search"
+              placeholder="Search customers by name, town, or contact..."
+              className="w-full pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -142,7 +159,7 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <TableRow key={customer.id}>
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell>{customer.town}</TableCell>
