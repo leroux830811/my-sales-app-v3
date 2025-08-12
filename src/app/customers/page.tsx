@@ -47,12 +47,12 @@ export default function CustomersPage() {
 
           const newCustomers: Customer[] = json.map((row, index) => ({
             id: `imported-${Date.now()}-${index}`,
-            name: row['Customer Name'] || row['name'],
-            town: row['Town'] || row['town'],
-            address: row['Address'] || row['address'],
-            contactPerson: row['Contact Person'] || row['contactPerson'],
-            phone: row['Phone'] || row['phone'],
-            email: row['Email'] || row['email'],
+            name: row['Customer Name'] || row['name'] || '',
+            town: row['Town'] || row['town'] || '',
+            address: row['Address'] || row['address'] || '',
+            contactPerson: row['Contact Person'] || row['contactPerson'] || '',
+            phone: row['Phone'] || row['phone'] || '',
+            email: row['Email'] || row['email'] || '',
             status: row['Status'] || row['status'] || 'Lead',
           }));
 
@@ -97,9 +97,9 @@ export default function CustomersPage() {
   }
 
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.town.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
+    (customer.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (customer.town?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (customer.contactPerson?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   return (
