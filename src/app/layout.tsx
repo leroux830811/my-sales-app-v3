@@ -28,13 +28,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <CustomerProvider>
-          <InteractionProvider>
-            <ProductProvider>
+          <ProductProvider>
+            <InteractionProvider>
               <AppLayout>
                 {children}
               </AppLayout>
-            </ProductProvider>
-          </InteractionProvider>
+            </InteractionProvider>
+          </ProductProvider>
         </CustomerProvider>
         <Toaster />
       </body>

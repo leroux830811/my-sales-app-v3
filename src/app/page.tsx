@@ -9,14 +9,16 @@ import { reminders } from "@/lib/data";
 import { format } from "date-fns";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
+import { useProducts } from "@/context/product-context";
 
 export default function DashboardPage() {
   const { customers } = useCustomers();
   const { interactions } = useInteractions();
+  const { products } = useProducts();
 
-  const totalSales = 125430.50;
-  const newCustomers = 12;
-  const productsSold = 432;
+  const totalSales = 0;
+  const newCustomers = customers.filter(c => c.status === 'Lead').length;
+  const productsSoldCount = 432;
   const interactionCount = interactions.length;
 
   return (
@@ -32,7 +34,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">R{totalSales.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+10.2% from last month</p>
+            <p className="text-xs text-muted-foreground">0% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -42,7 +44,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{newCustomers}</div>
-            <p className="text-xs text-muted-foreground">+5% from last month</p>
+            <p className="text-xs text-muted-foreground">0% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -51,8 +53,8 @@ export default function DashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{productsSold}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <div className="text-2xl font-bold">+{products.length}</div>
+            <p className="text-xs text-muted-foreground">0% from last month</p>
           </CardContent>
         </Card>
         <Card>
@@ -73,42 +75,48 @@ export default function DashboardPage() {
             <CardTitle>Recent Interactions</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {interactions.slice(0, 5).map(interaction => {
-                  const customer = customers.find(c => c.id === interaction.customerId);
-                  return (
-                    <TableRow key={interaction.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Avatar>
-                            <AvatarImage src={`https://placehold.co/40x40.png?text=${customer?.name.charAt(0)}`} />
-                            <AvatarFallback>{customer?.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{customer?.name}</div>
-                            <div className="text-sm text-muted-foreground">{customer?.contactPerson}</div>
+            {interactions.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Notes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {interactions.slice(0, 5).map(interaction => {
+                    const customer = customers.find(c => c.id === interaction.customerId);
+                    return (
+                      <TableRow key={interaction.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Avatar>
+                              <AvatarImage src={`https://placehold.co/40x40.png?text=${customer?.name.charAt(0)}`} />
+                              <AvatarFallback>{customer?.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">{customer?.name}</div>
+                              <div className="text-sm text-muted-foreground">{customer?.contactPerson}</div>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={interaction.type === "Email" ? "secondary" : "outline"}>{interaction.type}</Badge>
-                      </TableCell>
-                      <TableCell>{format(new Date(interaction.date), "PPP")}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{interaction.notes}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={interaction.type === "Email" ? "secondary" : "outline"}>{interaction.type}</Badge>
+                        </TableCell>
+                        <TableCell>{format(new Date(interaction.date), "PPP")}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{interaction.notes}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex items-center justify-center h-48">
+                <p className="text-muted-foreground">No recent interactions.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -117,23 +125,29 @@ export default function DashboardPage() {
             <CardTitle>Upcoming Reminders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {reminders.slice(0, 5).map(reminder => {
-                const customer = customers.find(c => c.id === reminder.customerId);
-                return (
-                  <div key={reminder.id} className="flex items-start gap-4">
-                    <div className="bg-primary/10 text-primary rounded-full h-8 w-8 flex items-center justify-center">
-                      <Bell className="h-4 w-4" />
+            {reminders.length > 0 ? (
+              <div className="space-y-4">
+                {reminders.slice(0, 5).map(reminder => {
+                  const customer = customers.find(c => c.id === reminder.customerId);
+                  return (
+                    <div key={reminder.id} className="flex items-start gap-4">
+                      <div className="bg-primary/10 text-primary rounded-full h-8 w-8 flex items-center justify-center">
+                        <Bell className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">Follow up with {customer?.contactPerson}</p>
+                        <p className="text-sm text-muted-foreground">{reminder.notes}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(reminder.date), "PPP")}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium">Follow up with {customer?.contactPerson}</p>
-                      <p className="text-sm text-muted-foreground">{reminder.notes}</p>
-                      <p className="text-xs text-muted-foreground">{format(new Date(reminder.date), "PPP")}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+                <div className="flex items-center justify-center h-48">
+                    <p className="text-muted-foreground">No upcoming reminders.</p>
+                </div>
+            )}
           </CardContent>
         </Card>
       </div>
