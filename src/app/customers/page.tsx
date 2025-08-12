@@ -4,7 +4,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Upload, FilePlus } from "lucide-react";
-import { customers } from "@/lib/data";
+import { customers, interactions } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { exportToCsv } from '@/lib/csv';
 import {
@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 
 export default function CustomersPage() {
@@ -34,6 +35,17 @@ export default function CustomersPage() {
       case "Lead":
         return "outline";
     }
+  }
+
+  const getLastInteractionDate = (customerId: string) => {
+    const customerInteractions = interactions
+      .filter(i => i.customerId === customerId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    if (customerInteractions.length > 0) {
+      return format(new Date(customerInteractions[0].date), "PPP");
+    }
+    return "N/A";
   }
 
   return (
@@ -82,6 +94,7 @@ export default function CustomersPage() {
               <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Last Interaction</TableHead>
               <TableHead><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
@@ -97,6 +110,7 @@ export default function CustomersPage() {
                 <TableCell>
                   <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
                 </TableCell>
+                <TableCell>{getLastInteractionDate(customer.id)}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
