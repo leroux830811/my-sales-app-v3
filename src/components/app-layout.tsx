@@ -26,6 +26,7 @@ import {
   FilePlus,
   ShoppingCart,
   Camera,
+  Settings,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -104,7 +105,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
-          {/* Footer content can go here */}
+          <SidebarMenu>
+            <SidebarMenuItem>
+                <Link href="/settings">
+                    <SidebarMenuButton
+                        isActive={pathname === "/settings"}
+                        tooltip="Settings"
+                    >
+                        <Settings />
+                        <span>Settings</span>
+                    </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
