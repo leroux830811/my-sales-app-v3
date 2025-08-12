@@ -22,6 +22,8 @@ import {
   Bell,
   Mail,
   Sandwich,
+  Map,
+  FilePlus,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -50,6 +52,16 @@ const menuItems = [
     href: "/email-generator",
     label: "Email Generator",
     icon: Mail,
+  },
+  {
+    href: "/route",
+    label: "Route",
+    icon: Map,
+  },
+  {
+    href: "/import",
+    label: "Import Customers",
+    icon: FilePlus,
   },
 ];
 
