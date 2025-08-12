@@ -6,18 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Users, Activity, Bell, Package } from "lucide-react";
-import { reminders } from "@/lib/data";
 import { format } from "date-fns";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
 import { useProducts } from "@/context/product-context";
 import { useOrders } from "@/context/order-context";
+import { useReminders } from "@/context/reminder-context";
 
 export default function DashboardPage() {
   const { customers } = useCustomers();
   const { interactions } = useInteractions();
   const { products } = useProducts();
   const { orders } = useOrders();
+  const { reminders } = useReminders();
 
   const totalSales = orders.reduce((acc, order) => {
     let orderTotal = 0;
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const newCustomers = customers.filter(c => c.status === 'Lead').length;
   const productsSoldCount = 432;
   const interactionCount = interactions.length;
+  const upcomingReminders = reminders.filter(r => !r.isComplete);
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -141,9 +143,9 @@ export default function DashboardPage() {
                 <CardTitle>Upcoming Reminders</CardTitle>
             </CardHeader>
             <CardContent>
-                {reminders.length > 0 ? (
+                {upcomingReminders.length > 0 ? (
                 <div className="space-y-4">
-                    {reminders.slice(0, 5).map(reminder => {
+                    {upcomingReminders.slice(0, 5).map(reminder => {
                     const customer = customers.find(c => c.id === reminder.customerId);
                     return (
                         <div key={reminder.id} className="flex items-start gap-4">
@@ -151,8 +153,8 @@ export default function DashboardPage() {
                             <Bell className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                            <p className="font-medium">Follow up with {customer?.contactPerson}</p>
-                            <p className="text-sm text-muted-foreground">{reminder.notes}</p>
+                            <p className="font-medium">{reminder.customerId ? `Follow up with ${customer?.contactPerson}` : reminder.notes}</p>
+                            {reminder.customerId && <p className="text-sm text-muted-foreground">{reminder.notes}</p>}
                             <p className="text-xs text-muted-foreground">{format(new Date(reminder.date), "PPP")}</p>
                         </div>
                         </div>

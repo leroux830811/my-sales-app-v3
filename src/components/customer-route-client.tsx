@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from 'next/image';
 import {
   Popover,
@@ -26,7 +26,7 @@ import { Separator } from "./ui/separator";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
 import { Input } from "./ui/input";
@@ -34,6 +34,7 @@ import { useOrders } from "@/context/order-context";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import { CameraCapture } from "./camera-capture";
 import { usePhotos } from "@/context/photo-context";
+import { useReminders } from "@/context/reminder-context";
 
 
 export default function CustomerRouteClient() {
@@ -42,6 +43,7 @@ export default function CustomerRouteClient() {
   const { interactions, addInteraction } = useInteractions();
   const { addOrder } = useOrders();
   const { addPhoto } = usePhotos();
+  const { reminders } = useReminders();
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
@@ -59,6 +61,18 @@ export default function CustomerRouteClient() {
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(productSearch.toLowerCase())
   );
+
+  useEffect(() => {
+    if (selectedCustomer) {
+      const customerReminders = reminders.filter(r => r.customerId === selectedCustomer.id && !r.isComplete && isToday(new Date(r.date)));
+      if(customerReminders.length > 0) {
+        toast({
+            title: `Reminder for ${selectedCustomer.name}`,
+            description: customerReminders.map(r => r.notes).join(', '),
+        })
+      }
+    }
+  }, [selectedCustomer, reminders, toast]);
 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);

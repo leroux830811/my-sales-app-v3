@@ -7,6 +7,7 @@ import { InteractionProvider } from '@/context/interaction-context';
 import { ProductProvider } from '@/context/product-context';
 import { OrderProvider } from '@/context/order-context';
 import { PhotoProvider } from '@/context/photo-context';
+import { ReminderProvider } from '@/context/reminder-context';
 
 export const metadata: Metadata = {
   title: 'Deli Sales Pro',
@@ -32,13 +33,15 @@ export default function RootLayout({
         <CustomerProvider>
           <ProductProvider>
             <InteractionProvider>
-              <OrderProvider>
-                <PhotoProvider>
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
-                </PhotoProvider>
-              </OrderProvider>
+                <OrderProvider>
+                    <PhotoProvider>
+                        <ReminderProvider>
+                            <AppLayout>
+                                {children}
+                            </AppLayout>
+                        </ReminderProvider>
+                    </PhotoProvider>
+                </OrderProvider>
             </InteractionProvider>
           </ProductProvider>
         </CustomerProvider>

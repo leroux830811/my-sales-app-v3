@@ -30,9 +30,10 @@ export type Interaction = {
 
 export type Reminder = {
   id: string;
-  customerId: string;
+  customerId?: string;
   date: string;
   notes: string;
+  isComplete: boolean;
 };
 
 export type Order = {
