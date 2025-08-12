@@ -9,15 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
-import type { Customer } from '@/lib/data';
+import type { Customer, Product } from '@/lib/data';
 import { FilePlus } from 'lucide-react';
+import { useProducts } from '@/context/product-context';
 
 
 export default function SettingsPage() {
     const { setCustomers } = useCustomers();
+    const { setProducts } = useProducts();
     const { toast } = useToast();
 
-    const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCustomerFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
           const reader = new FileReader();
@@ -49,7 +51,7 @@ export default function SettingsPage() {
               console.error("Error parsing Excel file:", error);
               toast({
                 title: "Import Failed",
-                description: "Could not parse the Excel file. Please check the format.",
+                description: "Could not parse the customer Excel file. Please check the format.",
                 variant: "destructive",
               });
             }
@@ -57,6 +59,47 @@ export default function SettingsPage() {
           reader.readAsArrayBuffer(file);
         }
     };
+
+    const handleProductFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = new Uint8Array(e.target?.result as ArrayBuffer);
+              const workbook = XLSX.read(data, { type: 'array' });
+              const sheetName = workbook.SheetNames[0];
+              const worksheet = workbook.Sheets[sheetName];
+              const json = XLSX.utils.sheet_to_json<any>(worksheet);
+    
+              const newProducts: Product[] = json.map((row, index) => ({
+                id: `imported-${Date.now()}-${index}`,
+                name: row['Name'] || row['name'],
+                description: row['Description'] || row['description'],
+                price: parseFloat(row['Price'] || row['price'] || 0),
+                stock: parseInt(row['Stock'] || row['stock'] || 0),
+                size: row['Size'] || row['size'] || 'N/A',
+                image: 'https://placehold.co/600x400.png" data-ai-hint="deli meat',
+              }));
+    
+              setProducts(prev => [...prev, ...newProducts]);
+              toast({
+                title: "Success",
+                description: `${newProducts.length} products imported successfully.`,
+              });
+            } catch (error) {
+              console.error("Error parsing Excel file:", error);
+              toast({
+                title: "Import Failed",
+                description: "Could not parse the product Excel file. Please check the format.",
+                variant: "destructive",
+              });
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        }
+      };
+
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -66,9 +109,9 @@ export default function SettingsPage() {
         <Card>
             <CardHeader>
             <CardTitle>Data Management</CardTitle>
-            <CardDescription>Manage your application data here.</CardDescription>
+            <CardDescription>Manage your application data here. Import customer and product lists using Excel files.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex gap-4">
                 <Dialog>
                     <DialogTrigger asChild>
                     <Button variant="outline">
@@ -85,10 +128,30 @@ export default function SettingsPage() {
                     </DialogHeader>
                     <div className="grid w-full items-center gap-1.5 py-4">
                         <Label htmlFor="customer-file">Excel File</Label>
-                        <Input id="customer-file" type="file" accept=".xlsx, .xls" onChange={handleFileImport} />
+                        <Input id="customer-file" type="file" accept=".xlsx, .xls" onChange={handleCustomerFileImport} />
                     </div>
                     </DialogContent>
                 </Dialog>
+                <Dialog>
+                        <DialogTrigger asChild>
+                        <Button variant="outline">
+                            <FilePlus className="mr-2 h-4 w-4" />
+                            Import Products
+                        </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Upload Product List</DialogTitle>
+                            <DialogDescription>
+                                Import your product data by uploading an Excel file. The file should have columns for Name, Description, Price, Stock, and Size.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid w-full items-center gap-1.5 py-4">
+                            <Label htmlFor="product-file">Excel File</Label>
+                            <Input id="product-file" type="file" accept=".xlsx, .xls" onChange={handleProductFileImport} />
+                        </div>
+                        </DialogContent>
+                    </Dialog>
             </CardContent>
         </Card>
         </div>
