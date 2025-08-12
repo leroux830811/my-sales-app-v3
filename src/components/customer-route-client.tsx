@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from 'next/image';
 import {
   Popover,
   PopoverContent,
@@ -18,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search } from "lucide-react";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera } from "lucide-react";
 import type { Customer, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
@@ -30,10 +31,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
 import { Input } from "./ui/input";
 import { useOrders } from "@/context/order-context";
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { CameraCapture } from "./camera-capture";
 
 
 export default function CustomerRouteClient() {
-  const { customers } = useCustomers();
+  const { customers, updateCustomerImage } = useCustomers();
   const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
   const { addOrder } = useOrders();
@@ -43,6 +46,7 @@ export default function CustomerRouteClient() {
   const { toast } = useToast();
   const [order, setOrder] = useState<Map<string, number>>(new Map());
   const [productSearch, setProductSearch] = useState("");
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   const customerInteractions = interactions
@@ -129,6 +133,17 @@ export default function CustomerRouteClient() {
     setOrder(new Map());
   };
   
+  const handleSavePhoto = (imageDataUri: string) => {
+    if (selectedCustomerId) {
+        updateCustomerImage(selectedCustomerId, imageDataUri);
+        setIsCameraOpen(false);
+        toast({
+            title: "Photo Saved",
+            description: "The photo has been saved for this customer."
+        })
+    }
+  }
+
   if (!customers || !products) {
     return (
         <Card className="flex items-center justify-center h-96">
@@ -191,108 +206,120 @@ export default function CustomerRouteClient() {
       </Card>
       
       {selectedCustomer && (
-        <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-                <Card>
-                    <CardHeader className="flex flex-row items-center gap-4">
-                        <Avatar className="h-16 w-16">
-                            <AvatarImage src={`https://placehold.co/64x64.png?text=${selectedCustomer.name.charAt(0)}`} />
-                            <AvatarFallback>{selectedCustomer.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <CardTitle className="text-xl">{selectedCustomer.name}</CardTitle>
-                            <CardDescription>{selectedCustomer.contactPerson}</CardDescription>
-                            <p className="text-sm text-muted-foreground pt-1">{selectedCustomer.email}</p>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-64 bg-muted rounded-md flex items-center justify-center">
-                            <p className="text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4"/> Map Placeholder</p>
-                        </div>
-                         <Button className="w-full mt-4">Get Directions</Button>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="md:col-span-2">
-                 <Card>
-                    <CardContent className="p-6">
-                        <Tabs defaultValue="notes">
-                            <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="notes"><StickyNote className="mr-2"/> Notes & Interactions</TabsTrigger>
-                                <TabsTrigger value="order"><Package className="mr-2"/> Place Order</TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="notes">
-                                <div className="mt-4">
-                                    <h3 className="font-semibold mb-2">Log New Interaction</h3>
-                                    <Textarea 
-                                      placeholder={`Add a note about ${selectedCustomer.name}...`} 
-                                      className="mb-2"
-                                      value={noteText}
-                                      onChange={(e) => setNoteText(e.target.value)}
-                                    />
-                                    <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
-                                </div>
-                                <Separator className="my-6"/>
-                                <div>
-                                    <h3 className="font-semibold mb-4">Past Interactions</h3>
-                                    <div className="space-y-4">
-                                        {customerInteractions.map(interaction => (
-                                            <div key={interaction.id} className="text-sm">
-                                                <p className="font-medium">{format(new Date(interaction.date), "PPP")} - {interaction.type}</p>
-                                                <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
-                                            </div>
-                                        ))}
-                                         {customerInteractions.length === 0 && <p className="text-muted-foreground text-sm">No past interactions logged.</p>}
-                                    </div>
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="order">
-                                <div className="mt-4">
-                                     <div className="relative mb-4">
-                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            type="search"
-                                            placeholder="Search products..."
-                                            className="w-full pl-8"
-                                            value={productSearch}
-                                            onChange={(e) => setProductSearch(e.target.value)}
+        <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
+            <div className="grid md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={`https://placehold.co/64x64.png?text=${selectedCustomer.name.charAt(0)}`} />
+                                <AvatarFallback>{selectedCustomer.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <CardTitle className="text-xl">{selectedCustomer.name}</CardTitle>
+                                <CardDescription>{selectedCustomer.contactPerson}</CardDescription>
+                                <p className="text-sm text-muted-foreground pt-1">{selectedCustomer.email}</p>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="h-64 bg-muted rounded-md flex items-center justify-center relative">
+                                {selectedCustomer.storefrontImage ? (
+                                    <Image src={selectedCustomer.storefrontImage} alt="Store front" layout="fill" objectFit="cover" className="rounded-md"/>
+                                ) : (
+                                    <p className="text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4"/> Storefront Photo</p>
+                                )}
+                            </div>
+                            <DialogTrigger asChild>
+                                <Button className="w-full mt-4"><Camera className="mr-2 h-4 w-4"/> Take Photo</Button>
+                            </DialogTrigger>
+                             <Button className="w-full mt-4" variant="outline">Get Directions</Button>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="md:col-span-2">
+                     <Card>
+                        <CardContent className="p-6">
+                            <Tabs defaultValue="notes">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="notes"><StickyNote className="mr-2"/> Notes & Interactions</TabsTrigger>
+                                    <TabsTrigger value="order"><Package className="mr-2"/> Place Order</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="notes">
+                                    <div className="mt-4">
+                                        <h3 className="font-semibold mb-2">Log New Interaction</h3>
+                                        <Textarea 
+                                          placeholder={`Add a note about ${selectedCustomer.name}...`} 
+                                          className="mb-2"
+                                          value={noteText}
+                                          onChange={(e) => setNoteText(e.target.value)}
                                         />
+                                        <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
                                     </div>
-                                     <h3 className="font-semibold mb-4">Product List</h3>
-                                     <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-                                        {filteredProducts.map(product => {
-                                            const quantity = order.get(product.id) || 0;
-                                            return (
-                                                <div key={product.id} className="flex justify-between items-center">
-                                                    <div>
-                                                        <p className="font-medium">{product.name}</p>
-                                                        <p className="text-sm text-muted-foreground">R{product.price.toFixed(2)} / {product.size}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        {quantity > 0 && (
-                                                            <>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveFromOrder(product.id)}><MinusCircle /></Button>
-                                                                <span className="font-bold w-4 text-center">{quantity}</span>
-                                                            </>
-                                                        )}
-                                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleAddToOrder(product.id)}><PlusCircle /></Button>
-                                                    </div>
+                                    <Separator className="my-6"/>
+                                    <div>
+                                        <h3 className="font-semibold mb-4">Past Interactions</h3>
+                                        <div className="space-y-4">
+                                            {customerInteractions.map(interaction => (
+                                                <div key={interaction.id} className="text-sm">
+                                                    <p className="font-medium">{format(new Date(interaction.date), "PPP")} - {interaction.type}</p>
+                                                    <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
                                                 </div>
-                                            )
-                                        })}
-                                         {filteredProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
-                                     </div>
-                                     <Separator className="my-6"/>
-                                     <Button className="w-full" onClick={handleSendToWhatsApp} disabled={order.size === 0}>
-                                        <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp & Save Order
-                                     </Button>
-                                </div>
-                            </TabsContent>
-                        </Tabs>
-                    </CardContent>
-                 </Card>
+                                            ))}
+                                             {customerInteractions.length === 0 && <p className="text-muted-foreground text-sm">No past interactions logged.</p>}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="order">
+                                    <div className="mt-4">
+                                         <div className="relative mb-4">
+                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="search"
+                                                placeholder="Search products..."
+                                                className="w-full pl-8"
+                                                value={productSearch}
+                                                onChange={(e) => setProductSearch(e.target.value)}
+                                            />
+                                        </div>
+                                         <h3 className="font-semibold mb-4">Product List</h3>
+                                         <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+                                            {filteredProducts.map(product => {
+                                                const quantity = order.get(product.id) || 0;
+                                                return (
+                                                    <div key={product.id} className="flex justify-between items-center">
+                                                        <div>
+                                                            <p className="font-medium">{product.name}</p>
+                                                            <p className="text-sm text-muted-foreground">R{product.price.toFixed(2)} / {product.size}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {quantity > 0 && (
+                                                                <>
+                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveFromOrder(product.id)}><MinusCircle /></Button>
+                                                                    <span className="font-bold w-4 text-center">{quantity}</span>
+                                                                </>
+                                                            )}
+                                                            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleAddToOrder(product.id)}><PlusCircle /></Button>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                             {filteredProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
+                                         </div>
+                                         <Separator className="my-6"/>
+                                         <Button className="w-full" onClick={handleSendToWhatsApp} disabled={order.size === 0}>
+                                            <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp & Save Order
+                                         </Button>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </CardContent>
+                     </Card>
+                </div>
             </div>
-        </div>
+            <DialogContent className="max-w-3xl">
+                <CameraCapture onCapture={handleSavePhoto} />
+            </DialogContent>
+        </Dialog>
       )}
        {!selectedCustomer && (
             <Card className="flex items-center justify-center h-96">

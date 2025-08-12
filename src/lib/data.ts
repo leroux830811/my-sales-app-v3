@@ -7,6 +7,7 @@ export type Customer = {
   phone: string;
   email: string;
   status: "Active" | "Inactive" | "Lead";
+  storefrontImage?: string;
 };
 
 export type Product = {

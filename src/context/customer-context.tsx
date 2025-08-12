@@ -8,6 +8,7 @@ import { customers as initialCustomers } from '@/lib/data';
 type CustomerContextType = {
   customers: Customer[];
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
+  updateCustomerImage: (customerId: string, imageUrl: string) => void;
 };
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
@@ -15,8 +16,16 @@ const CustomerContext = createContext<CustomerContextType | undefined>(undefined
 export function CustomerProvider({ children }: { children: ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
 
+  const updateCustomerImage = (customerId: string, imageUrl: string) => {
+    setCustomers(prev => 
+      prev.map(c => 
+        c.id === customerId ? { ...c, storefrontImage: imageUrl } : c
+      )
+    );
+  };
+
   return (
-    <CustomerContext.Provider value={{ customers, setCustomers }}>
+    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage }}>
       {children}
     </CustomerContext.Provider>
   );
