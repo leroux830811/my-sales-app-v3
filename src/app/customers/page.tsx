@@ -4,8 +4,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Upload, FilePlus } from "lucide-react";
-import { customers, type Customer } from "@/lib/data";
-import { format } from 'date-fns';
+import { customers } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { exportToCsv } from '@/lib/csv';
 import {
@@ -18,12 +17,24 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from '@/components/ui/badge';
 
 
 export default function CustomersPage() {
   const handleExport = () => {
     exportToCsv(customers, 'deli-sales-pro-customers.csv');
   };
+
+  const getStatusVariant = (status: "Active" | "Inactive" | "Lead") => {
+    switch (status) {
+      case "Active":
+        return "default";
+      case "Inactive":
+        return "secondary";
+      case "Lead":
+        return "outline";
+    }
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -41,7 +52,7 @@ export default function CustomersPage() {
               <DialogHeader>
                 <DialogTitle>Upload Customer List</DialogTitle>
                 <DialogDescription>
-                  Import your customer data by uploading a CSV file. Make sure the file has columns for name, company, and email.
+                  Import your customer data by uploading a CSV file. Make sure the file has columns for name, town, address, contact person, phone, email, and status.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid w-full items-center gap-1.5 py-4">
@@ -64,10 +75,13 @@ export default function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
+              <TableHead>Customer Name</TableHead>
+              <TableHead>Town</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Contact Person</TableHead>
+              <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Last Interaction</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
@@ -75,9 +89,14 @@ export default function CustomersPage() {
             {customers.map((customer) => (
               <TableRow key={customer.id}>
                 <TableCell className="font-medium">{customer.name}</TableCell>
-                <TableCell>{customer.company}</TableCell>
+                <TableCell>{customer.town}</TableCell>
+                <TableCell>{customer.address}</TableCell>
+                <TableCell>{customer.contactPerson}</TableCell>
+                <TableCell>{customer.phone}</TableCell>
                 <TableCell>{customer.email}</TableCell>
-                <TableCell>{format(new Date(customer.lastInteraction), "PPP")}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

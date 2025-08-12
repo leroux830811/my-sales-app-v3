@@ -1,9 +1,12 @@
 export type Customer = {
   id: string;
   name: string;
-  company: string;
+  town: string;
+  address: string;
+  contactPerson: string;
+  phone: string;
   email: string;
-  lastInteraction: string;
+  status: "Active" | "Inactive" | "Lead";
 };
 
 export type Product = {
@@ -31,11 +34,11 @@ export type Reminder = {
 };
 
 export const customers: Customer[] = [
-  { id: '1', name: 'John Smith', company: 'Gourmet Foods Inc.', email: 'john.s@gourmetfoods.com', lastInteraction: '2023-10-26' },
-  { id: '2', name: 'Maria Garcia', company: 'The Deli Stop', email: 'maria.g@delistop.net', lastInteraction: '2023-10-25' },
-  { id: '3', name: 'Chen Wei', company: 'Artisan Meats', email: 'w.chen@artisanmeats.co', lastInteraction: '2023-10-22' },
-  { id: '4', name: 'Fatima Al-Fassi', company: 'Continental Catering', email: 'fatima.a@continental.com', lastInteraction: '2023-10-20' },
-  { id: '5', name: 'David Miller', company: "Miller's Fine Meats", email: 'dave@millersmeats.com', lastInteraction: '2023-10-19' },
+  { id: '1', name: 'Gourmet Foods Inc.', town: 'Oakville', address: '123 Food St', contactPerson: 'John Smith', phone: '555-1234', email: 'john.s@gourmetfoods.com', status: 'Active' },
+  { id: '2', name: 'The Deli Stop', town: 'Maplewood', address: '456 Deli Ave', contactPerson: 'Maria Garcia', phone: '555-5678', email: 'maria.g@delistop.net', status: 'Active' },
+  { id: '3', name: 'Artisan Meats', town: 'Greenfield', address: '789 Artisan Way', contactPerson: 'Chen Wei', phone: '555-9012', email: 'w.chen@artisanmeats.co', status: 'Inactive' },
+  { id: '4', name: 'Continental Catering', town: 'Rivertown', address: '101 Cater Rd', contactPerson: 'Fatima Al-Fassi', phone: '555-3456', email: 'fatima.a@continental.com', status: 'Lead' },
+  { id: '5', name: "Miller's Fine Meats", town: 'Springfield', address: '212 Miller Ln', contactPerson: 'David Miller', phone: '555-7890', email: 'dave@millersmeats.com', status: 'Active' },
 ];
 
 export const products: Product[] = [

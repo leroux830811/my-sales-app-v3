@@ -67,7 +67,7 @@ export default function EmailGeneratorClient({ customers, products }: EmailGener
 
     try {
       const result = await generateEmailTemplateAction({
-        customerName: customer.name,
+        customerName: customer.contactPerson,
         productName: product.name,
         productDescription: product.description,
         pastOrders: values.pastOrders,
@@ -113,11 +113,11 @@ export default function EmailGeneratorClient({ customers, products }: EmailGener
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a customer to target" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         {customers.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.company}</SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{c.name} - {c.contactPerson}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

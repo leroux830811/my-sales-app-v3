@@ -111,7 +111,7 @@ export default function RemindersPage() {
                     <Bell className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-lg">Follow up with {customer?.name}</p>
+                    <p className="font-semibold text-lg">Follow up with {customer?.contactPerson}</p>
                     <p className="text-md text-muted-foreground">{reminder.notes}</p>
                     <p className="text-sm text-muted-foreground pt-1">{format(new Date(reminder.date), "EEEE, MMMM do, yyyy")}</p>
                   </div>

@@ -88,7 +88,7 @@ export default function DashboardPage() {
                           </Avatar>
                           <div>
                             <div className="font-medium">{customer?.name}</div>
-                            <div className="text-sm text-muted-foreground">{customer?.company}</div>
+                            <div className="text-sm text-muted-foreground">{customer?.contactPerson}</div>
                           </div>
                         </div>
                       </TableCell>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
                       <Bell className="h-4 w-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium">Follow up with {customer?.name}</p>
+                      <p className="font-medium">Follow up with {customer?.contactPerson}</p>
                       <p className="text-sm text-muted-foreground">{reminder.notes}</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(reminder.date), "PPP")}</p>
                     </div>

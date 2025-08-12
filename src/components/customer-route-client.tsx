@@ -52,7 +52,7 @@ export default function CustomerRouteClient({
                 <SelectContent>
                 {customers.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name} - {customer.company}
+                    {customer.name} - {customer.town}
                     </SelectItem>
                 ))}
                 </SelectContent>
@@ -71,7 +71,7 @@ export default function CustomerRouteClient({
                         </Avatar>
                         <div>
                             <CardTitle className="text-xl">{selectedCustomer.name}</CardTitle>
-                            <CardDescription>{selectedCustomer.company}</CardDescription>
+                            <CardDescription>{selectedCustomer.contactPerson}</CardDescription>
                             <p className="text-sm text-muted-foreground pt-1">{selectedCustomer.email}</p>
                         </div>
                     </CardHeader>
