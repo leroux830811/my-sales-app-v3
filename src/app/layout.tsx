@@ -8,6 +8,7 @@ import { ProductProvider } from '@/context/product-context';
 import { OrderProvider } from '@/context/order-context';
 import { PhotoProvider } from '@/context/photo-context';
 import { ReminderProvider } from '@/context/reminder-context';
+import { ThemeProvider } from '@/context/theme-context';
 
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
@@ -30,21 +31,23 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <CustomerProvider>
-          <ProductProvider>
-            <InteractionProvider>
-                <OrderProvider>
-                    <PhotoProvider>
-                        <ReminderProvider>
-                            <AppLayout>
-                                {children}
-                            </AppLayout>
-                        </ReminderProvider>
-                    </PhotoProvider>
-                </OrderProvider>
-            </InteractionProvider>
-          </ProductProvider>
-        </CustomerProvider>
+        <ThemeProvider>
+            <CustomerProvider>
+            <ProductProvider>
+                <InteractionProvider>
+                    <OrderProvider>
+                        <PhotoProvider>
+                            <ReminderProvider>
+                                <AppLayout>
+                                    {children}
+                                </AppLayout>
+                            </ReminderProvider>
+                        </PhotoProvider>
+                    </OrderProvider>
+                </InteractionProvider>
+            </ProductProvider>
+            </CustomerProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

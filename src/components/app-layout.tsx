@@ -1,7 +1,9 @@
+
 "use client";
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   SidebarProvider,
@@ -27,6 +29,7 @@ import {
   Settings,
 } from "lucide-react";
 import { Button } from "./ui/button";
+import { useTheme } from "@/context/theme-context";
 
 const menuItems = [
   {
@@ -83,14 +86,45 @@ const KameeldoringTreeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { logo, setLogo } = useTheme();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleLogoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <SidebarProvider>
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleLogoChange}
+      />
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Button variant="ghost" size="icon" className="h-12 w-12">
-              <KameeldoringTreeIcon className="h-8 w-8 text-primary" />
+            <Button variant="ghost" size="icon" className="h-12 w-12" onClick={handleLogoClick}>
+                {logo ? (
+                    <Image src={logo} alt="App Logo" width={32} height={32} className="object-contain h-8 w-8" />
+                ) : (
+                    <KameeldoringTreeIcon className="h-8 w-8 text-primary" />
+                )}
             </Button>
             <span className="text-xl font-semibold tracking-tight">BB Sales Pro</span>
           </div>

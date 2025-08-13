@@ -11,14 +11,16 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product } from '@/lib/data';
-import { FilePlus, PlusCircle } from 'lucide-react';
+import { FilePlus, PlusCircle, Palette } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTheme } from '@/context/theme-context';
 
 
 export default function SettingsPage() {
     const { customers, setCustomers } = useCustomers();
     const { setProducts } = useProducts();
+    const { theme, setTheme } = useTheme();
     const { toast } = useToast();
     const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
     const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'storefrontImage'>>({
@@ -157,114 +159,139 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between space-y-2">
             <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
         </div>
-        <Card>
-            <CardHeader>
-            <CardTitle>Data Management</CardTitle>
-            <CardDescription>Manage your application data here. Add new customers manually or import customer and product lists using Excel files.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex gap-4">
-                 <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
-                    <DialogTrigger asChild>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Customer
-                    </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>Add New Customer</DialogTitle>
-                        <DialogDescription>
-                        Fill in the details below to add a new customer to your list.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">Customer Name</Label>
-                            <Input id="name" name="name" value={newCustomer.name} onChange={handleInputChange} className="col-span-3" />
+
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                <CardTitle>Data Management</CardTitle>
+                <CardDescription>Manage your application data here. Add new customers manually or import customer and product lists using Excel files.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-4">
+                    <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
+                        <DialogTrigger asChild>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Customer
+                        </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Add New Customer</DialogTitle>
+                            <DialogDescription>
+                            Fill in the details below to add a new customer to your list.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="name" className="text-right">Customer Name</Label>
+                                <Input id="name" name="name" value={newCustomer.name} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="contactPerson" className="text-right">Contact Person</Label>
+                                <Input id="contactPerson" name="contactPerson" value={newCustomer.contactPerson} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="town" className="text-right">Town</Label>
+                                <Input id="town" name="town" value={newCustomer.town} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="address" className="text-right">Address</Label>
+                                <Input id="address" name="address" value={newCustomer.address} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="phone" className="text-right">Phone</Label>
+                                <Input id="phone" name="phone" value={newCustomer.phone} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="email" className="text-right">Email</Label>
+                                <Input id="email" name="email" type="email" value={newCustomer.email} onChange={handleInputChange} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="status" className="text-right">Status</Label>
+                                <Select name="status" value={newCustomer.status} onValueChange={handleStatusChange}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Active">Active</SelectItem>
+                                        <SelectItem value="Inactive">Inactive</SelectItem>
+                                        <SelectItem value="Lead">Lead</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="contactPerson" className="text-right">Contact Person</Label>
-                            <Input id="contactPerson" name="contactPerson" value={newCustomer.contactPerson} onChange={handleInputChange} className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="town" className="text-right">Town</Label>
-                            <Input id="town" name="town" value={newCustomer.town} onChange={handleInputChange} className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="address" className="text-right">Address</Label>
-                            <Input id="address" name="address" value={newCustomer.address} onChange={handleInputChange} className="col-span-3" />
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="phone" className="text-right">Phone</Label>
-                            <Input id="phone" name="phone" value={newCustomer.phone} onChange={handleInputChange} className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="email" className="text-right">Email</Label>
-                            <Input id="email" name="email" type="email" value={newCustomer.email} onChange={handleInputChange} className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="status" className="text-right">Status</Label>
-                            <Select name="status" value={newCustomer.status} onValueChange={handleStatusChange}>
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Active">Active</SelectItem>
-                                    <SelectItem value="Inactive">Inactive</SelectItem>
-                                    <SelectItem value="Lead">Lead</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={handleAddCustomer}>Save Customer</Button>
-                    </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-                <Dialog>
-                    <DialogTrigger asChild>
-                    <Button variant="outline">
-                        <FilePlus className="mr-2 h-4 w-4" />
-                        Import Customers
-                    </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Upload Customer List</DialogTitle>
-                        <DialogDescription>
-                        Import your customer data by uploading an Excel file. Make sure the file has columns for Customer Name, Town, Address, Contact Person, Phone, Email, and Status.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid w-full items-center gap-1.5 py-4">
-                        <Label htmlFor="customer-file">Excel File</Label>
-                        <Input id="customer-file" type="file" accept=".xlsx, .xls" onChange={handleCustomerFileImport} />
-                    </div>
-                    </DialogContent>
-                </Dialog>
-                <Dialog>
+                        <DialogFooter>
+                            <Button onClick={handleAddCustomer}>Save Customer</Button>
+                        </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog>
                         <DialogTrigger asChild>
                         <Button variant="outline">
                             <FilePlus className="mr-2 h-4 w-4" />
-                            Import Products
+                            Import Customers
                         </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                         <DialogHeader>
-                            <DialogTitle>Upload Product List</DialogTitle>
+                            <DialogTitle>Upload Customer List</DialogTitle>
                             <DialogDescription>
-                                Import your product data by uploading an Excel file. The file should have columns for Name, Description, Price, Stock, and Size.
+                            Import your customer data by uploading an Excel file. Make sure the file has columns for Customer Name, Town, Address, Contact Person, Phone, Email, and Status.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid w-full items-center gap-1.5 py-4">
-                            <Label htmlFor="product-file">Excel File</Label>
-                            <Input id="product-file" type="file" accept=".xlsx, .xls" onChange={handleProductFileImport} />
+                            <Label htmlFor="customer-file">Excel File</Label>
+                            <Input id="customer-file" type="file" accept=".xlsx, .xls" onChange={handleCustomerFileImport} />
                         </div>
                         </DialogContent>
                     </Dialog>
-            </CardContent>
-        </Card>
+                    <Dialog>
+                            <DialogTrigger asChild>
+                            <Button variant="outline">
+                                <FilePlus className="mr-2 h-4 w-4" />
+                                Import Products
+                            </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Upload Product List</DialogTitle>
+                                <DialogDescription>
+                                    Import your product data by uploading an Excel file. The file should have columns for Name, Description, Price, Stock, and Size.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid w-full items-center gap-1.5 py-4">
+                                <Label htmlFor="product-file">Excel File</Label>
+                                <Input id="product-file" type="file" accept=".xlsx, .xls" onChange={handleProductFileImport} />
+                            </div>
+                            </DialogContent>
+                        </Dialog>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>Customize the look and feel of your application.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                         <Label htmlFor="theme" className="flex items-center gap-2"><Palette className="h-4 w-4" /> App Theme</Label>
+                         <Select value={theme} onValueChange={setTheme}>
+                            <SelectTrigger id="theme" className="w-[180px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="theme-default">Default</SelectItem>
+                                <SelectItem value="theme-zinc">Zinc</SelectItem>
+                                <SelectItem value="theme-rose">Rose</SelectItem>
+                                <SelectItem value="theme-blue">Blue</SelectItem>
+                                <SelectItem value="theme-green">Green</SelectItem>
+                            </SelectContent>
+                         </Select>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
         </div>
     );
 }
-
-    
