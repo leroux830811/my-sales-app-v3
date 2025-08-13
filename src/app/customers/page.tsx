@@ -150,7 +150,7 @@ export default function CustomersPage() {
                                     <AvatarImage src={`https://placehold.co/64x64.png?text=${selectedCustomer.name.charAt(0)}`} />
                                     <AvatarFallback>{selectedCustomer.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
-                                <div>
+                                <div className="flex-1">
                                     <SheetTitle className="text-2xl">{selectedCustomer.name}</SheetTitle>
                                     <SheetDescription>
                                         <Badge variant={getStatusVariant(selectedCustomer.status)}>{selectedCustomer.status}</Badge>
