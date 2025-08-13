@@ -79,15 +79,15 @@ export default function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Customer Name</TableHead>
-              <TableHead className="w-[150px]">Town</TableHead>
-              <TableHead className="w-[250px]">Address</TableHead>
+              <TableHead>Customer Name</TableHead>
+              <TableHead>Town</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead>Contact Person</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Last Interaction</TableHead>
-              <TableHead className="w-[50px]"><span className="sr-only">Actions</span></TableHead>
+              <TableHead><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
