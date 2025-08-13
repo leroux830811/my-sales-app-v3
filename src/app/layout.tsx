@@ -10,8 +10,8 @@ import { PhotoProvider } from '@/context/photo-context';
 import { ReminderProvider } from '@/context/reminder-context';
 
 export const metadata: Metadata = {
-  title: 'Deli Sales Pro',
-  description: 'CRM for cold meats sales representatives',
+  title: 'BB Sales Pro',
+  description: 'CRM for sales representatives',
 };
 
 export default function RootLayout({

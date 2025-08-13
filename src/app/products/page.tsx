@@ -20,7 +20,7 @@ export default function ProductsPage() {
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
     const handleExport = () => {
-        exportToCsv(products.map(p => ({...p, image: ''})), 'deli-sales-pro-products.csv');
+        exportToCsv(products.map(p => ({...p, image: ''})), 'bb-sales-pro-products.csv');
     };
 
     const handleImageClick = (productId: string) => {

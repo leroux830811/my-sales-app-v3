@@ -21,9 +21,7 @@ import {
   Package,
   Bell,
   Mail,
-  Sandwich,
   Map,
-  FilePlus,
   ShoppingCart,
   Camera,
   Settings,
@@ -73,6 +71,16 @@ const menuItems = [
   },
 ];
 
+const KameeldoringTreeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 512 512"
+        {...props}
+    >
+        <path d="M416 320c0-53-43-96-96-96h-16v-32h16c26.5 0 48-21.5 48-48s-21.5-48-48-48h-16v-16c0-26.5-21.5-48-48-48s-48 21.5-48 48v16h-16c-26.5 0-48 21.5-48 48s21.5 48 48 48h16v32h-16c-53 0-96 43-96 96s43 96 96 96h32v32c0 17.7 14.3 32 32 32h64c17.7 0 32-14.3 32-32v-32h32c53 0 96-43 96-96z" />
+    </svg>
+)
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -81,10 +89,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <Sandwich className="h-6 w-6 text-primary" />
+            <Button variant="ghost" size="icon" className="h-12 w-12">
+              <KameeldoringTreeIcon className="h-8 w-8 text-primary" />
             </Button>
-            <span className="text-lg font-semibold tracking-tight">Deli Sales Pro</span>
+            <span className="text-xl font-semibold tracking-tight">BB Sales Pro</span>
           </div>
         </SidebarHeader>
         <SidebarContent>

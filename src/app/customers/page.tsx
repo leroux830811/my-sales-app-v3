@@ -18,7 +18,7 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleExport = () => {
-    exportToExcel(customers, 'deli-sales-pro-customers.xlsx');
+    exportToExcel(customers, 'bb-sales-pro-customers.xlsx');
   };
 
   const getStatusVariant = (status: "Active" | "Inactive" | "Lead") => {
