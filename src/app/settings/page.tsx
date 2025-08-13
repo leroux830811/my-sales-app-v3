@@ -1,23 +1,35 @@
+
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product } from '@/lib/data';
-import { FilePlus } from 'lucide-react';
+import { FilePlus, PlusCircle } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 export default function SettingsPage() {
-    const { setCustomers } = useCustomers();
+    const { customers, setCustomers } = useCustomers();
     const { setProducts } = useProducts();
     const { toast } = useToast();
+    const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+    const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'storefrontImage'>>({
+        name: '',
+        town: '',
+        address: '',
+        contactPerson: '',
+        phone: '',
+        email: '',
+        status: 'Lead',
+    });
 
     const handleCustomerFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -100,6 +112,45 @@ export default function SettingsPage() {
         }
       };
 
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setNewCustomer(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleStatusChange = (value: Customer['status']) => {
+        setNewCustomer(prev => ({ ...prev, status: value }));
+    };
+
+    const handleAddCustomer = () => {
+        if (!newCustomer.name || !newCustomer.contactPerson) {
+            toast({
+                title: "Missing Information",
+                description: "Please fill in at least the customer name and contact person.",
+                variant: "destructive",
+            });
+            return;
+        }
+        const customerToAdd: Customer = {
+            id: `manual-${Date.now()}`,
+            ...newCustomer,
+        };
+        setCustomers(prev => [...prev, ...customerToAdd]);
+        toast({
+            title: "Customer Added",
+            description: `${newCustomer.name} has been added to your customer list.`,
+        });
+        setNewCustomer({
+            name: '',
+            town: '',
+            address: '',
+            contactPerson: '',
+            phone: '',
+            email: '',
+            status: 'Lead',
+        });
+        setIsAddCustomerOpen(false);
+    };
+
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -109,9 +160,67 @@ export default function SettingsPage() {
         <Card>
             <CardHeader>
             <CardTitle>Data Management</CardTitle>
-            <CardDescription>Manage your application data here. Import customer and product lists using Excel files.</CardDescription>
+            <CardDescription>Manage your application data here. Add new customers manually or import customer and product lists using Excel files.</CardDescription>
             </CardHeader>
             <CardContent className="flex gap-4">
+                 <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
+                    <DialogTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Customer
+                    </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Add New Customer</DialogTitle>
+                        <DialogDescription>
+                        Fill in the details below to add a new customer to your list.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">Customer Name</Label>
+                            <Input id="name" name="name" value={newCustomer.name} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="contactPerson" className="text-right">Contact Person</Label>
+                            <Input id="contactPerson" name="contactPerson" value={newCustomer.contactPerson} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="town" className="text-right">Town</Label>
+                            <Input id="town" name="town" value={newCustomer.town} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="address" className="text-right">Address</Label>
+                            <Input id="address" name="address" value={newCustomer.address} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="phone" className="text-right">Phone</Label>
+                            <Input id="phone" name="phone" value={newCustomer.phone} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="email" className="text-right">Email</Label>
+                            <Input id="email" name="email" type="email" value={newCustomer.email} onChange={handleInputChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="status" className="text-right">Status</Label>
+                            <Select name="status" value={newCustomer.status} onValueChange={handleStatusChange}>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                    <SelectItem value="Lead">Lead</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleAddCustomer}>Save Customer</Button>
+                    </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                 <Dialog>
                     <DialogTrigger asChild>
                     <Button variant="outline">
@@ -157,3 +266,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    
