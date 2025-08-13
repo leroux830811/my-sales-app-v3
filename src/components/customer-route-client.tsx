@@ -135,7 +135,7 @@ export default function CustomerRouteClient() {
         items: order,
     });
 
-    const phoneNumber = "1234567890"; // IMPORTANT: Replace with the target WhatsApp number
+    const phoneNumber = "27826064648"; // IMPORTANT: Replace with the target WhatsApp number
     let message = `*New Order for ${selectedCustomer.name}*\n\n`;
     order.forEach((quantity, productId) => {
         const product = products.find(p => p.id === productId);
