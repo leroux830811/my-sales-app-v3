@@ -106,8 +106,19 @@ export default function CustomersPage() {
               <TableRow key={customer.id} onClick={() => setSelectedCustomer(customer)} className="cursor-pointer">
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell>{customer.town}</TableCell>
-                <TableCell>
-                    <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" className="p-0 h-auto font-normal">
+                                <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                             </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            <DropdownMenuItem onSelect={() => handleStatusChange(customer.id, 'Active')}>Active</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStatusChange(customer.id, 'Lead')}>Lead</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStatusChange(customer.id, 'Inactive')}>Inactive</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </TableCell>
                 <TableCell>{getLastInteractionDate(customer.id)}</TableCell>
                 <TableCell>
