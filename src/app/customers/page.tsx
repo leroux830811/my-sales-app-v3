@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -11,10 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useCustomers } from '@/context/customer-context';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function CustomersPage() {
-  const { customers } = useCustomers();
+  const { customers, updateCustomerField, updateCustomerStatus } = useCustomers();
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleExport = () => {
@@ -42,6 +43,10 @@ export default function CustomersPage() {
     }
     return "N/A";
   }
+
+  const handleFieldChange = (customerId: string, field: keyof Omit<Customer, 'id' | 'status'>, value: string) => {
+    updateCustomerField(customerId, field, value);
+  };
 
   const filteredCustomers = customers.filter(customer =>
     (customer.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -88,14 +93,64 @@ export default function CustomersPage() {
           <TableBody>
             {filteredCustomers.map((customer) => (
               <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.name}</TableCell>
-                <TableCell>{customer.town}</TableCell>
-                <TableCell>{customer.address}</TableCell>
-                <TableCell>{customer.contactPerson}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{customer.email}</TableCell>
+                <TableCell className="font-medium">
+                  <Input
+                    defaultValue={customer.name}
+                    onBlur={(e) => handleFieldChange(customer.id, 'name', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
                 <TableCell>
-                  <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                  <Input
+                    defaultValue={customer.town}
+                    onBlur={(e) => handleFieldChange(customer.id, 'town', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
+                <TableCell>
+                   <Input
+                    defaultValue={customer.address}
+                    onBlur={(e) => handleFieldChange(customer.id, 'address', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
+                <TableCell>
+                   <Input
+                    defaultValue={customer.contactPerson}
+                    onBlur={(e) => handleFieldChange(customer.id, 'contactPerson', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    defaultValue={customer.phone}
+                    onBlur={(e) => handleFieldChange(customer.id, 'phone', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    defaultValue={customer.email}
+                    onBlur={(e) => handleFieldChange(customer.id, 'email', e.target.value)}
+                    className="border-none bg-transparent"
+                  />
+                </TableCell>
+                <TableCell>
+                   <Select
+                    defaultValue={customer.status}
+                    onValueChange={(value: Customer['status']) => updateCustomerStatus(customer.id, value)}
+                  >
+                    <SelectTrigger className="w-[100px] border-none bg-transparent">
+                      <SelectValue asChild>
+                         <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Inactive">Inactive</SelectItem>
+                      <SelectItem value="Lead">Lead</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
                 <TableCell>{getLastInteractionDate(customer.id)}</TableCell>
                 <TableCell>

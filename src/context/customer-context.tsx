@@ -10,6 +10,8 @@ type CustomerContextType = {
   setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
   updateCustomerImage: (customerId: string, imageUrl: string) => void;
   updateCustomerAddress: (customerId: string, address: string) => void;
+  updateCustomerField: (customerId: string, field: keyof Omit<Customer, 'id' | 'status'>, value: string) => void;
+  updateCustomerStatus: (customerId: string, status: Customer['status']) => void;
 };
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
@@ -33,8 +35,24 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateCustomerField = (customerId: string, field: keyof Omit<Customer, 'id' | 'status'>, value: string) => {
+    setCustomers(prev =>
+      prev.map(c =>
+        c.id === customerId ? { ...c, [field]: value } : c
+      )
+    );
+  };
+
+  const updateCustomerStatus = (customerId: string, status: Customer['status']) => {
+    setCustomers(prev =>
+      prev.map(c =>
+        c.id === customerId ? { ...c, status } : c
+      )
+    );
+  };
+
   return (
-    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage, updateCustomerAddress }}>
+    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage, updateCustomerAddress, updateCustomerField, updateCustomerStatus }}>
       {children}
     </CustomerContext.Provider>
   );
