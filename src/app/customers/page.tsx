@@ -79,68 +79,68 @@ export default function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer Name</TableHead>
-              <TableHead>Town</TableHead>
-              <TableHead>Address</TableHead>
+              <TableHead className="w-[200px]">Customer Name</TableHead>
+              <TableHead className="w-[150px]">Town</TableHead>
+              <TableHead className="w-[250px]">Address</TableHead>
               <TableHead>Contact Person</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="w-[120px]">Status</TableHead>
               <TableHead>Last Interaction</TableHead>
-              <TableHead><span className="sr-only">Actions</span></TableHead>
+              <TableHead className="w-[50px]"><span className="sr-only">Actions</span></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredCustomers.map((customer) => (
               <TableRow key={customer.id}>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium p-2">
                   <Input
                     defaultValue={customer.name}
                     onBlur={(e) => handleFieldChange(customer.id, 'name', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                   <Input
                     defaultValue={customer.town}
                     onBlur={(e) => handleFieldChange(customer.id, 'town', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                    <Input
                     defaultValue={customer.address}
                     onBlur={(e) => handleFieldChange(customer.id, 'address', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                    <Input
                     defaultValue={customer.contactPerson}
                     onBlur={(e) => handleFieldChange(customer.id, 'contactPerson', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                   <Input
                     defaultValue={customer.phone}
                     onBlur={(e) => handleFieldChange(customer.id, 'phone', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                   <Input
                     defaultValue={customer.email}
                     onBlur={(e) => handleFieldChange(customer.id, 'email', e.target.value)}
-                    className="border-none bg-transparent"
+                    className="border-none bg-transparent h-8"
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="p-2">
                    <Select
                     defaultValue={customer.status}
                     onValueChange={(value: Customer['status']) => updateCustomerStatus(customer.id, value)}
                   >
-                    <SelectTrigger className="w-[100px] border-none bg-transparent">
+                    <SelectTrigger className="w-full border-none bg-transparent h-8">
                       <SelectValue asChild>
                          <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
                       </SelectValue>
@@ -152,8 +152,8 @@ export default function CustomersPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>{getLastInteractionDate(customer.id)}</TableCell>
-                <TableCell>
+                <TableCell className="p-2 text-sm">{getLastInteractionDate(customer.id)}</TableCell>
+                <TableCell className="p-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button aria-haspopup="true" size="icon" variant="ghost">
