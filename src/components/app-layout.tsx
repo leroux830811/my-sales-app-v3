@@ -26,6 +26,7 @@ import {
   ShoppingCart,
   Camera,
   Settings,
+  MapPin,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useTheme } from "@/context/theme-context";
@@ -65,6 +66,12 @@ const menuItems = [
     href: "/photos",
     label: "Photos",
     icon: Camera,
+  },
+  {
+    href: "https://www.google.com/maps",
+    label: "Google Maps",
+    icon: MapPin,
+    external: true,
   },
 ];
 
@@ -127,9 +134,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarMenu>
             {menuItems.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
+                <Link href={item.href} target={item.external ? "_blank" : "_self"} rel={item.external ? "noopener noreferrer" : ""}>
                   <SidebarMenuButton
-                    isActive={pathname === item.href}
+                    isActive={pathname === item.href && !item.external}
                     tooltip={item.label}
                   >
                     <item.icon />
