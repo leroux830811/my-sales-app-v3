@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Search } from "lucide-react";
 import { interactions, type Customer } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { exportToCsv } from '@/lib/csv';
+import { exportToExcel } from '@/lib/excel';
 import { Input } from "@/components/ui/input";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -18,7 +18,7 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleExport = () => {
-    exportToCsv(customers, 'deli-sales-pro-customers.csv');
+    exportToExcel(customers, 'deli-sales-pro-customers.xlsx');
   };
 
   const getStatusVariant = (status: "Active" | "Inactive" | "Lead") => {
@@ -56,7 +56,7 @@ export default function CustomersPage() {
         <div className="flex items-center space-x-2">
           <Button onClick={handleExport}>
             <FileDown className="mr-2 h-4 w-4" />
-            Export CSV
+            Export XLSX
           </Button>
         </div>
       </div>
