@@ -22,7 +22,6 @@ import {
   Users,
   Package,
   Bell,
-  Mail,
   Map,
   ShoppingCart,
   Camera,
@@ -66,11 +65,6 @@ const menuItems = [
     href: "/photos",
     label: "Photos",
     icon: Camera,
-  },
-  {
-    href: "/email-generator",
-    label: "Email Generator",
-    icon: Mail,
   },
 ];
 
