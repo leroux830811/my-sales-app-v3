@@ -9,7 +9,6 @@ import { OrderProvider } from '@/context/order-context';
 import { PhotoProvider } from '@/context/photo-context';
 import { ReminderProvider } from '@/context/reminder-context';
 import { ThemeProvider } from '@/context/theme-context';
-import { CatalogProvider } from '@/context/catalog-context';
 
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
@@ -33,7 +32,6 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
-          <CatalogProvider>
             <CustomerProvider>
             <ProductProvider>
                 <InteractionProvider>
@@ -49,7 +47,6 @@ export default function RootLayout({
                 </InteractionProvider>
             </ProductProvider>
             </CustomerProvider>
-          </CatalogProvider>
         </ThemeProvider>
         <Toaster />
       </body>

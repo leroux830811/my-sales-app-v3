@@ -5,7 +5,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, ShoppingCart, Weight, Search, MessageSquare, Check, ChevronsUpDown, Phone, Share } from "lucide-react";
+import { FileDown, ShoppingCart, Weight, Search, MessageSquare, Check, ChevronsUpDown, Phone } from "lucide-react";
 import type { Product } from "@/lib/data";
 import { Badge } from '@/components/ui/badge';
 import { exportToHtml } from '@/lib/export';
@@ -19,12 +19,10 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useCatalog } from '@/context/catalog-context';
 
 export default function ProductsPage() {
     const { products, setProducts } = useProducts();
     const { customers } = useCustomers();
-    const { catalogPdf } = useCatalog();
     const { toast } = useToast();
     const [productSearch, setProductSearch] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,20 +118,6 @@ export default function ProductsPage() {
         setManualPhoneNumber("");
     }
 
-    const handleSharePdfCatalog = () => {
-        if (catalogPdf) {
-            const pdfWindow = window.open("");
-            pdfWindow?.document.write(`<iframe width='100%' height='100%' src='${catalogPdf}'></iframe>`);
-            pdfWindow?.document.title = "Product Catalog";
-        } else {
-            toast({
-                title: "No PDF Catalog",
-                description: "Please upload a PDF catalog in the Settings page first.",
-                variant: "destructive"
-            });
-        }
-    }
-
     const filteredProducts = products.filter(product => 
         product.name.toLowerCase().includes(productSearch.toLowerCase())
     );
@@ -224,12 +208,6 @@ export default function ProductsPage() {
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
-                    {catalogPdf && (
-                         <Button variant="outline" onClick={handleSharePdfCatalog}>
-                            <Share className="mr-2 h-4 w-4" />
-                            Share PDF Catalog
-                        </Button>
-                    )}
                     <Button onClick={handleExport}>
                         <FileDown className="mr-2 h-4 w-4" />
                         Export HTML Catalog
@@ -284,5 +262,3 @@ export default function ProductsPage() {
         </div>
     );
 }
-
-    
