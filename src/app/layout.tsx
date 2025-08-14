@@ -13,6 +13,7 @@ import { ThemeProvider } from '@/context/theme-context';
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
   description: 'CRM for sales representatives',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
