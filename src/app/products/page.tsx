@@ -1,13 +1,14 @@
+
 "use client";
 
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileDown, ShoppingCart, Weight, Search, MessageSquare, Check, ChevronsUpDown } from "lucide-react";
-import type { Customer, Product } from "@/lib/data";
+import { FileDown, ShoppingCart, Weight, Search, MessageSquare, Check, ChevronsUpDown, Phone } from "lucide-react";
+import type { Product } from "@/lib/data";
 import { Badge } from '@/components/ui/badge';
-import { exportToCsv } from '@/lib/csv';
+import { exportToHtml } from '@/lib/export';
 import { useProducts } from '@/context/product-context';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function ProductsPage() {
     const { products, setProducts } = useProducts();
@@ -24,14 +26,23 @@ export default function ProductsPage() {
     const { toast } = useToast();
     const [productSearch, setProductSearch] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const catalogRef = useRef<HTMLDivElement>(null);
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
     const [isCatalogDialogOpen, setIsCatalogDialogOpen] = useState(false);
     const [isCustomerPopoverOpen, setIsCustomerPopoverOpen] = useState(false);
     const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+    const [manualPhoneNumber, setManualPhoneNumber] = useState("");
+    const [sendToOption, setSendToOption] = useState<'customer' | 'manual'>('customer');
 
 
     const handleExport = () => {
-        exportToCsv(products.map(p => ({...p, image: ''})), 'bb-sales-pro-products.csv');
+        if (catalogRef.current) {
+            exportToHtml(catalogRef.current, 'bb-sales-pro-catalog.html');
+            toast({
+                title: "Catalog Exported",
+                description: "Your catalog has been saved as an HTML file. Open it and print to PDF for a professional copy.",
+            });
+        }
     };
 
     const handleImageClick = (productId: string) => {
@@ -66,30 +77,45 @@ export default function ProductsPage() {
     }
 
     const handleSendCatalog = () => {
-        if (!selectedCustomerId) {
-            toast({ title: "No Customer Selected", description: "Please select a customer to send the catalog to.", variant: "destructive" });
-            return;
-        }
-        const customer = customers.find(c => c.id === selectedCustomerId);
-        if (!customer || !customer.phone) {
-            toast({ title: "Invalid Customer", description: "The selected customer does not have a valid phone number.", variant: "destructive" });
-            return;
+        let phoneNumber = "";
+        let customerName = "Valued Customer";
+
+        if (sendToOption === 'customer') {
+            if (!selectedCustomerId) {
+                toast({ title: "No Customer Selected", description: "Please select a customer.", variant: "destructive" });
+                return;
+            }
+            const customer = customers.find(c => c.id === selectedCustomerId);
+            if (!customer || !customer.phone) {
+                toast({ title: "Invalid Customer", description: "The selected customer does not have a valid phone number.", variant: "destructive" });
+                return;
+            }
+            phoneNumber = customer.phone;
+            customerName = customer.contactPerson;
+        } else {
+            if (!manualPhoneNumber.trim()) {
+                 toast({ title: "No Phone Number", description: "Please enter a phone number.", variant: "destructive" });
+                return;
+            }
+            phoneNumber = manualPhoneNumber;
         }
 
-        let message = `*Our Product Catalog*\n\nHello ${customer.contactPerson},\n\nHere is our current product list:\n\n`;
+
+        let message = `*Our Product Catalog*\n\nHello ${customerName},\n\nHere is our current product list:\n\n`;
         products.forEach(product => {
             message += `*${product.name}*\n`;
             message += `Price: R${product.price.toFixed(2)}\n`;
             message += `Size: ${product.size}\n\n`;
         });
 
-        const phoneNumber = customer.phone.replace(/\D/g, ''); // Remove non-numeric characters
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+        const cleanedPhoneNumber = phoneNumber.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${cleanedPhoneNumber}?text=${encodeURIComponent(message)}`;
         
         window.open(whatsappUrl, '_blank');
         toast({ title: "Catalog Ready", description: "Your message has been prepared for WhatsApp." });
         setIsCatalogDialogOpen(false);
         setSelectedCustomerId(null);
+        setManualPhoneNumber("");
     }
 
     const filteredProducts = products.filter(product => 
@@ -118,51 +144,74 @@ export default function ProductsPage() {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Send Catalog via WhatsApp</DialogTitle>
-                                <DialogDescription>Select a customer to send the full product catalog to.</DialogDescription>
+                                <DialogDescription>Select a customer or enter a number to send the catalog to.</DialogDescription>
                             </DialogHeader>
                              <div className="grid gap-4 py-4">
-                                <Label htmlFor="customer-select">Customer</Label>
-                                <Popover open={isCustomerPopoverOpen} onOpenChange={setIsCustomerPopoverOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" role="combobox" id="customer-select" className="w-full justify-between">
-                                    {selectedCustomerId ? customers.find(c => c.id === selectedCustomerId)?.name : "Select customer..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Search customer..." />
-                                        <CommandList>
-                                            <CommandEmpty>No customer found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {customers.map(customer => (
-                                                <CommandItem
-                                                    key={customer.id}
-                                                    value={customer.name}
-                                                    onSelect={() => {
-                                                        setSelectedCustomerId(customer.id);
-                                                        setIsCustomerPopoverOpen(false);
-                                                    }}
-                                                >
-                                                    <Check className={cn("mr-2 h-4 w-4", selectedCustomerId === customer.id ? "opacity-100" : "opacity-0")}/>
-                                                    {customer.name}
-                                                </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                                </Popover>
+                                <RadioGroup defaultValue="customer" value={sendToOption} onValueChange={(value: 'customer' | 'manual') => setSendToOption(value)} className='flex gap-4'>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="customer" id="r1" />
+                                        <Label htmlFor="r1">Select Customer</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="manual" id="r2" />
+                                        <Label htmlFor="r2">Enter Number</Label>
+                                    </div>
+                                </RadioGroup>
+
+                                {sendToOption === 'customer' ? (
+                                    <Popover open={isCustomerPopoverOpen} onOpenChange={setIsCustomerPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" role="combobox" className="w-full justify-between">
+                                            {selectedCustomerId ? customers.find(c => c.id === selectedCustomerId)?.name : "Select customer..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search customer..." />
+                                                <CommandList>
+                                                    <CommandEmpty>No customer found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {customers.map(customer => (
+                                                        <CommandItem
+                                                            key={customer.id}
+                                                            value={customer.name}
+                                                            onSelect={() => {
+                                                                setSelectedCustomerId(customer.id);
+                                                                setIsCustomerPopoverOpen(false);
+                                                            }}
+                                                        >
+                                                            <Check className={cn("mr-2 h-4 w-4", selectedCustomerId === customer.id ? "opacity-100" : "opacity-0")}/>
+                                                            {customer.name}
+                                                        </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </CommandList>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <div className="relative">
+                                         <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                         <Input 
+                                            type="tel" 
+                                            placeholder="Enter phone number" 
+                                            className="pl-8"
+                                            value={manualPhoneNumber}
+                                            onChange={(e) => setManualPhoneNumber(e.target.value)}
+                                        />
+                                    </div>
+                                )}
                             </div>
                             <DialogFooter>
-                                <Button onClick={handleSendCatalog} disabled={!selectedCustomerId}>Send via WhatsApp</Button>
+                                <Button onClick={handleSendCatalog}>Send via WhatsApp</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
 
                     <Button onClick={handleExport}>
                         <FileDown className="mr-2 h-4 w-4" />
-                        Export CSV
+                        Export Catalog
                     </Button>
                 </div>
             </div>
@@ -176,7 +225,7 @@ export default function ProductsPage() {
                     onChange={(e) => setProductSearch(e.target.value)}
                 />
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div ref={catalogRef} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredProducts.map((product) => (
                     <Card key={product.id}>
                         <CardHeader>
@@ -214,3 +263,5 @@ export default function ProductsPage() {
         </div>
     );
 }
+
+    
