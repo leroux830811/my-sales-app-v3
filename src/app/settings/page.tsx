@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product } from '@/lib/data';
-import { FilePlus, PlusCircle, Palette, Download } from 'lucide-react';
+import { FilePlus, PlusCircle, Palette, Download, Upload, View, Trash2 } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/context/theme-context';
@@ -19,6 +19,7 @@ import { useOrders } from '@/context/order-context';
 import { useInteractions } from '@/context/interaction-context';
 import { useReminders } from '@/context/reminder-context';
 import { subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
+import { useCatalog } from '@/context/catalog-context';
 
 export default function SettingsPage() {
     const { customers, setCustomers } = useCustomers();
@@ -26,8 +27,10 @@ export default function SettingsPage() {
     const { orders } = useOrders();
     const { interactions } = useInteractions();
     const { reminders } = useReminders();
-
     const { theme, setTheme } = useTheme();
+    const { catalogPdf, setCatalogPdf } = useCatalog();
+    const pdfInputRef = useRef<HTMLInputElement>(null);
+
     const { toast } = useToast();
     const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
     const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'storefrontImage'>>({
@@ -205,8 +208,6 @@ export default function SettingsPage() {
         });
 
         const newCustomers = customers.filter(c => {
-            // A proxy for creation date, as we don't store it.
-            // This will only work for imported/manually added customers.
             if(c.id.startsWith('imported-') || c.id.startsWith('manual-')) {
                  const timestamp = parseInt(c.id.split('-')[1]);
                  const creationDate = new Date(timestamp);
@@ -283,9 +284,45 @@ export default function SettingsPage() {
         });
     };
 
+    const handlePdfUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && file.type === "application/pdf") {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCatalogPdf(reader.result as string);
+                toast({
+                    title: "PDF Catalog Uploaded",
+                    description: "Your catalog has been saved and is ready to be shared."
+                });
+            }
+            reader.readAsDataURL(file);
+        } else {
+            toast({
+                title: "Invalid File Type",
+                description: "Please upload a valid PDF file.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleViewCatalog = () => {
+        if (catalogPdf) {
+            const pdfWindow = window.open("");
+            pdfWindow?.document.write(`<iframe width='100%' height='100%' src='${catalogPdf}'></iframe>`);
+            pdfWindow?.document.title = "Product Catalog";
+        }
+    };
+
 
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <input
+            type="file"
+            ref={pdfInputRef}
+            className="hidden"
+            accept="application/pdf"
+            onChange={handlePdfUpload}
+        />
         <div className="flex items-center justify-between space-y-2">
             <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
         </div>
@@ -419,6 +456,28 @@ export default function SettingsPage() {
                             </SelectContent>
                          </Select>
                     </div>
+                </CardContent>
+            </Card>
+            
+             <Card>
+                <CardHeader>
+                    <CardTitle>PDF Catalog</CardTitle>
+                    <CardDescription>Upload a PDF version of your product catalog to easily share it.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-4">
+                   <Button onClick={() => pdfInputRef.current?.click()}>
+                        <Upload className="mr-2 h-4 w-4" /> Upload PDF Catalog
+                    </Button>
+                    {catalogPdf && (
+                        <>
+                            <Button variant="outline" onClick={handleViewCatalog}>
+                                <View className="mr-2 h-4 w-4" /> View Catalog
+                            </Button>
+                             <Button variant="destructive" onClick={() => setCatalogPdf(null)}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Remove
+                            </Button>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
