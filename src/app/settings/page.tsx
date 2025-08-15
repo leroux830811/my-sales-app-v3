@@ -45,7 +45,7 @@ export default function SettingsPage() {
     // Add User State
     const [isAddUserOpen, setIsAddUserOpen] = useState(false);
     const [newUserEmail, setNewUserEmail] = useState('');
-    const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState(''); // This is not used for creation anymore but kept for future use
 
     // Reporting State
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
