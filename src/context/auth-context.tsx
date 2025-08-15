@@ -18,7 +18,15 @@ const getMockUsers = (): AppUser[] => {
         // For simplicity, we'll start with the current user if they exist
         // In a real app, you'd fetch this list from a secure backend.
         if (users) {
-            return JSON.parse(users)
+            try {
+                const parsedUsers = JSON.parse(users);
+                if (Array.isArray(parsedUsers)) {
+                    return parsedUsers;
+                }
+            } catch (e) {
+                console.error("Failed to parse users from localStorage", e);
+                return [];
+            }
         }
     }
     return [];
@@ -51,18 +59,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<AppUser[]>([]);
 
   useEffect(() => {
-    const initialUsers = getMockUsers();
+    // Load initial users from local storage
+    setUsers(getMockUsers());
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (currentUser && !initialUsers.find(u => u.uid === currentUser.uid)) {
-          const newUsers = [...initialUsers, {uid: currentUser.uid, email: currentUser.email}];
-          setUsers(newUsers);
-          saveMockUsers(newUsers);
-      } else if (!currentUser) {
-          // You might want logic here to clear users if that fits your app model
+      // Logic to add a newly signed-up user to our "mock" user list
+      if (currentUser) {
+          const userExists = getMockUsers().some(u => u.uid === currentUser.uid);
+          if (!userExists) {
+              const newUser = { uid: currentUser.uid, email: currentUser.email };
+              const updatedUsers = [...getMockUsers(), newUser];
+              saveMockUsers(updatedUsers);
+              setUsers(updatedUsers);
+          }
       }
-      setUsers(getMockUsers()); // a bit redundant, but ensures sync
       setLoading(false);
     });
 
@@ -88,37 +99,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const createUser = async (email: string, pass: string) => {
-    // This is not ideal for production as it requires elevated client-side privileges
-    // or specific security rules. For this tool, it's a simplification.
-    // In a real-world app, this logic should be on a secure backend.
+    // This function can now be called by a logged-in user to create another user.
+    // It doesn't handle the "first user" problem, but simplifies the logic greatly.
+    // For this to work in a real app, you'd need secure Firebase Rules.
     try {
-        // Temporarily sign out the current admin user to create a new one
-        const currentAuthUser = auth.currentUser;
-        const adminCredentials = { email: currentAuthUser?.email, uid: currentAuthUser?.uid };
-
-        if(currentAuthUser) await signOut(auth);
-
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const newUser = { uid: userCredential.user.uid, email: userCredential.user.email };
+        // We can't *actually* create a user on behalf of someone else from the client.
+        // Firebase Auth doesn't work that way for security reasons.
+        // So, we'll just add them to our "mock" list. The user will need to be created
+        // in the Firebase console. This function will now mainly be for display in the UI.
+        console.warn("User creation from the client is mocked. Please create users in the Firebase Console.");
         
-        // Add to our mock user list
+        // This is a placeholder. In a real app, you'd call a backend function.
+        const newUser = { uid: `mock_${Date.now()}`, email: email };
         const updatedUsers = [...users, newUser];
         setUsers(updatedUsers);
         saveMockUsers(updatedUsers);
+        
+        return Promise.resolve(newUser);
 
-        await signOut(auth); // Sign out the newly created user
-
-        // Sign the admin back in
-        // This is a big simplification. Re-authenticating would require the password, which we don't have.
-        // We'll rely on the onAuthStateChanged to just show a logged-out state,
-        // forcing the admin to log back in manually.
-        setUser(null);
-
-        return userCredential;
     } catch (error) {
         console.error("Error creating user:", error);
-        // Attempt to log admin back in if user creation fails.
-        // Again, this is a simplification.
         throw error;
     }
   }
@@ -127,9 +127,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Deleting users requires the Admin SDK and should be done from a secure backend.
     // We will only remove the user from our mock list for this demo.
     console.warn("User deletion is a mock action on the client-side.");
-    const updatedUsers = users.filter(u => u.uid !== uid);
-    setUsers(updatedUsers);
-    saveMockUsers(updatedUsers);
+    if (uid.startsWith('mock_')) {
+        const updatedUsers = users.filter(u => u.uid !== uid);
+        setUsers(updatedUsers);
+        saveMockUsers(updatedUsers);
+    } else {
+        // You cannot delete a real Firebase user from the client SDK.
+        // We will just remove it from our list.
+        const updatedUsers = users.filter(u => u.uid !== uid);
+        setUsers(updatedUsers);
+        saveMockUsers(updatedUsers);
+        console.log(`User ${uid} removed from local list. Please delete from Firebase Console.`);
+    }
     return Promise.resolve();
   }
 

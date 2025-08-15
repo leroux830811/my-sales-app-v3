@@ -142,27 +142,27 @@ export default function SettingsPage() {
     };
 
     const handleAddUser = async () => {
-        if (!newUserEmail || !newUserPassword) {
-            toast({ title: "Missing Information", description: "Please provide both an email and a password.", variant: "destructive" });
+        if (!newUserEmail) {
+            toast({ title: "Missing Information", description: "Please provide an email.", variant: "destructive" });
             return;
         }
         try {
             await createUser(newUserEmail, newUserPassword);
-            toast({ title: "User Created", description: `User ${newUserEmail} has been successfully created.` });
+            toast({ title: "User Added to List", description: `User ${newUserEmail} has been added. Please create their account in the Firebase Console.` });
             setNewUserEmail('');
             setNewUserPassword('');
             setIsAddUserOpen(false);
         } catch (error: any) {
-            toast({ title: "Error Creating User", description: error.message, variant: "destructive" });
+            toast({ title: "Error Adding User", description: error.message, variant: "destructive" });
         }
     };
     
     const handleDeleteUser = async (uid: string, email?: string | null) => {
         try {
             await deleteUser(uid);
-            toast({ title: "User Deleted", description: `User ${email || uid} has been removed.` });
+            toast({ title: "User Removed from List", description: `User ${email || uid} has been removed from the list. Please also remove from Firebase Console.` });
         } catch(error: any) {
-            toast({ title: "Error Deleting User", description: error.message, variant: "destructive" });
+            toast({ title: "Error Removing User", description: error.message, variant: "destructive" });
         }
     }
 
@@ -327,17 +327,21 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <CardTitle>User Management</CardTitle>
-                                <CardDescription>Add or remove users who can access this application.</CardDescription>
+                                <CardDescription>Add or remove users who can access this application. Users must be created in Firebase Console.</CardDescription>
                             </div>
                             <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                                 <DialogTrigger asChild><Button><Users className="mr-2 h-4 w-4" />Add New User</Button></DialogTrigger>
                                 <DialogContent>
-                                    <DialogHeader><DialogTitle>Create New User</DialogTitle><DialogDescription>Enter the new user's email and a temporary password.</DialogDescription></DialogHeader>
+                                    <DialogHeader>
+                                      <DialogTitle>Add New User to List</DialogTitle>
+                                      <DialogDescription>
+                                        Enter the user's email to add them to the list. You must still create their account in the Firebase Authentication console.
+                                      </DialogDescription>
+                                    </DialogHeader>
                                     <div className="grid gap-4 py-4">
                                         <div className="space-y-2"><Label htmlFor="new-email">Email</Label><Input id="new-email" type="email" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} /></div>
-                                        <div className="space-y-2"><Label htmlFor="new-password">Password</Label><Input id="new-password" type="password" value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} /></div>
                                     </div>
-                                    <DialogFooter><Button onClick={handleAddUser}>Create User</Button></DialogFooter>
+                                    <DialogFooter><Button onClick={handleAddUser}>Add User to List</Button></DialogFooter>
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -350,7 +354,7 @@ export default function SettingsPage() {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild><Button size="icon" variant="ghost" className="h-7 w-7 text-destructive"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
                                         <AlertDialogContent>
-                                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete the user {user.email}. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will remove user {user.email} from this list. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
                                             <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDeleteUser(user.uid, user.email)}>Continue</AlertDialogAction></AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
