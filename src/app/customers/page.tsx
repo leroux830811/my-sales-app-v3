@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2 } from "lucide-react";
-import { interactions, type Customer } from "@/lib/data";
+import { type Customer } from "@/lib/data";
+import { interactions } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { exportToExcel } from '@/lib/excel';
 import { Input } from "@/components/ui/input";
@@ -187,7 +188,7 @@ export default function CustomersPage() {
                                 </Avatar>
                                 <div className="flex-1">
                                     <SheetTitle className="text-2xl">{selectedCustomer.name}</SheetTitle>
-                                    <SheetDescription>
+                                    <SheetDescription asChild>
                                         <Badge variant={getStatusVariant(selectedCustomer.status)}>{selectedCustomer.status}</Badge>
                                     </SheetDescription>
                                 </div>
