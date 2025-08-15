@@ -43,6 +43,14 @@ export type Order = {
     items: Map<string, number>; // productId -> quantity
 }
 
+export type StockReturn = {
+    id: string;
+    customerId: string;
+    date: string;
+    items: Map<string, number>; // productId -> quantity
+    reason: string;
+}
+
 export const customers: Customer[] = [];
 
 export const products: Product[] = [];
@@ -52,3 +60,5 @@ export const interactions: Interaction[] = [];
 export const reminders: Reminder[] = [];
 
 export const orders: Order[] = [];
+
+export const stockReturns: StockReturn[] = [];

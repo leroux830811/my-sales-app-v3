@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera, Navigation, UserPlus, X, Zap } from "lucide-react";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera, Navigation, UserPlus, X, Zap, Undo2 } from "lucide-react";
 import type { Customer, Interaction, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
@@ -38,6 +38,8 @@ import { usePhotos } from "@/context/photo-context";
 import { useReminders } from "@/context/reminder-context";
 import { useRoute } from "@/context/route-context";
 import { ScrollArea } from "./ui/scroll-area";
+import { useStockReturns } from "@/context/stock-return-context";
+import { Label } from "./ui/label";
 
 
 interface CustomerRouteClientProps {
@@ -52,6 +54,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const { addPhoto } = usePhotos();
   const { reminders } = useReminders();
   const { routeCustomerIds, addToRoute, removeFromRoute } = useRoute();
+  const { addStockReturn } = useStockReturns();
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -59,6 +62,8 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const [competitorNoteText, setCompetitorNoteText] = useState("");
   const { toast } = useToast();
   const [order, setOrder] = useState<Map<string, number>>(new Map());
+  const [stockReturnItems, setStockReturnItems] = useState<Map<string, number>>(new Map());
+  const [stockReturnReason, setStockReturnReason] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraPurpose, setCameraPurpose] = useState<'storefront' | 'interaction' | null>(null);
@@ -103,6 +108,8 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const handleCustomerChange = (customerId: string) => {
     setSelectedCustomerId(customerId);
     setOrder(new Map()); // Reset order when customer changes
+    setStockReturnItems(new Map()); // Reset returns
+    setStockReturnReason("");
     setOpen(false);
   };
 
@@ -127,22 +134,25 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     })
   };
 
-  const handleAddToOrder = (productId: string) => {
-    const newOrder = new Map(order);
-    const currentQuantity = newOrder.get(productId) || 0;
-    newOrder.set(productId, currentQuantity + 1);
-    setOrder(newOrder);
-  }
-
-  const handleRemoveFromOrder = (productId: string) => {
-    const newOrder = new Map(order);
-    const currentQuantity = newOrder.get(productId);
-    if (currentQuantity && currentQuantity > 1) {
-        newOrder.set(productId, currentQuantity - 1);
-    } else if (currentQuantity === 1) {
-        newOrder.delete(productId);
+  const handleUpdateItemQuantity = (
+    productId: string, 
+    map: Map<string, number>, 
+    setMap: React.Dispatch<React.SetStateAction<Map<string, number>>>,
+    change: 'add' | 'remove'
+    ) => {
+    const newMap = new Map(map);
+    const currentQuantity = newMap.get(productId) || 0;
+    
+    if (change === 'add') {
+        newMap.set(productId, currentQuantity + 1);
+    } else {
+        if (currentQuantity > 1) {
+            newMap.set(productId, currentQuantity - 1);
+        } else if (currentQuantity === 1) {
+            newMap.delete(productId);
+        }
     }
-    setOrder(newOrder);
+    setMap(newMap);
   }
 
   const handleSendToWhatsApp = () => {
@@ -176,6 +186,44 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     setOrder(new Map());
   };
   
+  const handleProcessReturn = () => {
+     if (!selectedCustomer) {
+        toast({ title: "No customer selected", variant: "destructive" });
+        return;
+    }
+    if (stockReturnItems.size === 0) {
+        toast({ title: "No items selected", description: "Please add products to the return.", variant: "destructive" });
+        return;
+    }
+    if (!stockReturnReason.trim()) {
+        toast({ title: "Reason is missing", description: "Please provide a reason for the return.", variant: "destructive" });
+        return;
+    }
+
+    addStockReturn({
+        customerId: selectedCustomer.id,
+        items: stockReturnItems,
+        reason: stockReturnReason,
+    });
+
+    const phoneNumber = "27826064648"; // IMPORTANT: Replace with the target WhatsApp number
+    let message = `*Stock Return for ${selectedCustomer.name}*\n\nReason: ${stockReturnReason}\n\n`;
+    stockReturnItems.forEach((quantity, productId) => {
+        const product = products.find(p => p.id === productId);
+        if(product) {
+            message += `- ${product.name} (${product.size}) x${quantity}\n`;
+        }
+    });
+    
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+
+    toast({ title: "Return Processed & Saved", description: "The stock return has been saved and formatted for WhatsApp." });
+    setStockReturnItems(new Map());
+    setStockReturnReason("");
+  }
+
+
   const handleSavePhoto = (imageDataUri: string) => {
     if (selectedCustomerId && selectedCustomer) {
         if (cameraPurpose === 'storefront') {
@@ -228,6 +276,37 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                 <p>Loading data...</p>
             </div>
         </Card>
+    )
+  }
+
+  const renderProductList = (
+    map: Map<string, number>,
+    setMap: React.Dispatch<React.SetStateAction<Map<string, number>>>
+  ) => {
+    return (
+      <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+        {filteredProducts.map(product => {
+            const quantity = map.get(product.id) || 0;
+            return (
+                <div key={product.id} className="flex justify-between items-center">
+                    <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">R{product.price.toFixed(2)} / {product.size}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {quantity > 0 && (
+                            <>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleUpdateItemQuantity(product.id, map, setMap, 'remove')}><MinusCircle /></Button>
+                                <span className="font-bold w-4 text-center">{quantity}</span>
+                            </>
+                        )}
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleUpdateItemQuantity(product.id, map, setMap, 'add')}><PlusCircle /></Button>
+                    </div>
+                </div>
+            )
+        })}
+         {filteredProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
+      </div>
     )
   }
 
@@ -389,10 +468,11 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                      <Card>
                         <CardContent className="p-6">
                             <Tabs defaultValue="notes">
-                                <TabsList className="grid w-full grid-cols-3">
+                                <TabsList className="grid w-full grid-cols-4">
                                     <TabsTrigger value="notes"><StickyNote className="mr-2"/> Interactions</TabsTrigger>
                                     <TabsTrigger value="competitor"><Zap className="mr-2"/> Competitor Activity</TabsTrigger>
                                     <TabsTrigger value="order"><Package className="mr-2"/> Place Order</TabsTrigger>
+                                    <TabsTrigger value="return"><Undo2 className="mr-2"/> Stock Return</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="notes">
                                     <div className="mt-4">
@@ -467,32 +547,39 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                                             />
                                         </div>
                                          <h3 className="font-semibold mb-4">Product List</h3>
-                                         <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-                                            {filteredProducts.map(product => {
-                                                const quantity = order.get(product.id) || 0;
-                                                return (
-                                                    <div key={product.id} className="flex justify-between items-center">
-                                                        <div>
-                                                            <p className="font-medium">{product.name}</p>
-                                                            <p className="text-sm text-muted-foreground">R{product.price.toFixed(2)} / {product.size}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {quantity > 0 && (
-                                                                <>
-                                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveFromOrder(product.id)}><MinusCircle /></Button>
-                                                                    <span className="font-bold w-4 text-center">{quantity}</span>
-                                                                </>
-                                                            )}
-                                                            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleAddToOrder(product.id)}><PlusCircle /></Button>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
-                                             {filteredProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
-                                         </div>
+                                         {renderProductList(order, setOrder)}
                                          <Separator className="my-6"/>
                                          <Button className="w-full" onClick={handleSendToWhatsApp} disabled={order.size === 0}>
                                             <ShoppingCart className="mr-2 h-4 w-4" /> Send to WhatsApp & Save Order
+                                         </Button>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="return">
+                                    <div className="mt-4">
+                                         <div className="relative mb-4">
+                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="search"
+                                                placeholder="Search products..."
+                                                className="w-full pl-8"
+                                                value={productSearch}
+                                                onChange={(e) => setProductSearch(e.target.value)}
+                                            />
+                                        </div>
+                                         <h3 className="font-semibold mb-4">Product List</h3>
+                                         {renderProductList(stockReturnItems, setStockReturnItems)}
+                                         <Separator className="my-6"/>
+                                          <div className="space-y-2 mb-4">
+                                            <Label htmlFor="return-reason">Reason for Return</Label>
+                                            <Input 
+                                                id="return-reason" 
+                                                placeholder="e.g., Damaged, Expired" 
+                                                value={stockReturnReason} 
+                                                onChange={(e) => setStockReturnReason(e.target.value)} 
+                                            />
+                                        </div>
+                                         <Button className="w-full" onClick={handleProcessReturn} disabled={stockReturnItems.size === 0}>
+                                            <Undo2 className="mr-2 h-4 w-4" /> Process Return & Send Credit
                                          </Button>
                                     </div>
                                 </TabsContent>

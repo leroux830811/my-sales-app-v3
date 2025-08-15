@@ -10,6 +10,7 @@ import { PhotoProvider } from '@/context/photo-context';
 import { ReminderProvider } from '@/context/reminder-context';
 import { ThemeProvider } from '@/context/theme-context';
 import { RouteProvider } from '@/context/route-context';
+import { StockReturnProvider } from '@/context/stock-return-context';
 
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
@@ -41,9 +42,11 @@ export default function RootLayout({
                   <PhotoProvider>
                     <ReminderProvider>
                       <RouteProvider>
-                        <AppLayout>
-                            {children}
-                        </AppLayout>
+                        <StockReturnProvider>
+                          <AppLayout>
+                              {children}
+                          </AppLayout>
+                        </StockReturnProvider>
                       </RouteProvider>
                     </ReminderProvider>
                   </PhotoProvider>
