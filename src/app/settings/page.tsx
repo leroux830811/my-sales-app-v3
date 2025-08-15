@@ -11,14 +11,18 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product } from '@/lib/data';
-import { FilePlus, PlusCircle, Palette, Download } from 'lucide-react';
+import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/context/theme-context';
 import { useOrders } from '@/context/order-context';
 import { useInteractions } from '@/context/interaction-context';
 import { useReminders } from '@/context/reminder-context';
-import { subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 export default function SettingsPage() {
     const { customers, setCustomers } = useCustomers();
@@ -39,7 +43,11 @@ export default function SettingsPage() {
         email: '',
         status: 'Lead',
     });
-    const [reportPeriod, setReportPeriod] = useState<'weekly' | 'monthly'>('weekly');
+    
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: startOfDay(new Date(new Date().setDate(1))),
+        to: startOfDay(new Date()),
+    });
 
     const handleCustomerFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -173,20 +181,20 @@ export default function SettingsPage() {
     };
 
     const handleGenerateReport = () => {
-        const now = new Date();
-        let startDate: Date;
-        let endDate: Date = now;
-
-        if (reportPeriod === 'weekly') {
-            startDate = startOfWeek(now, { weekStartsOn: 1 });
-            endDate = endOfWeek(now, { weekStartsOn: 1 });
-        } else {
-            startDate = startOfMonth(now);
-            endDate = endOfMonth(now);
+        if (!dateRange?.from || !dateRange?.to) {
+            toast({
+                title: "Date range not selected",
+                description: "Please select a start and end date for the report.",
+                variant: "destructive"
+            });
+            return;
         }
 
+        const startDate = startOfDay(dateRange.from);
+        const endDate = startOfDay(dateRange.to);
+
         const filteredOrders = orders.filter(o => {
-            const orderDate = new Date(o.date);
+            const orderDate = startOfDay(new Date(o.date));
             return orderDate >= startDate && orderDate <= endDate;
         });
 
@@ -207,7 +215,7 @@ export default function SettingsPage() {
         const newCustomers = customers.filter(c => {
             if(c.id.startsWith('imported-') || c.id.startsWith('manual-')) {
                  const timestamp = parseInt(c.id.split('-')[1]);
-                 const creationDate = new Date(timestamp);
+                 const creationDate = startOfDay(new Date(timestamp));
                  return creationDate >= startDate && creationDate <= endDate;
             }
             return false;
@@ -221,7 +229,7 @@ export default function SettingsPage() {
         }));
         
         const filteredInteractions = interactions.filter(i => {
-            const interactionDate = new Date(i.date);
+            const interactionDate = startOfDay(new Date(i.date));
             return interactionDate >= startDate && interactionDate <= endDate;
         }).map(i => {
              const customer = customers.find(c => c.id === i.customerId);
@@ -234,7 +242,7 @@ export default function SettingsPage() {
         });
 
         const filteredReminders = reminders.filter(r => {
-            const reminderDate = new Date(r.date);
+            const reminderDate = startOfDay(new Date(r.date));
             return reminderDate >= startDate && reminderDate <= endDate;
         }).map(r => {
              const customer = customers.find(c => c.id === r.customerId);
@@ -267,17 +275,17 @@ export default function SettingsPage() {
         if (wb.SheetNames.length === 0) {
             toast({
                 title: "No Data Found",
-                description: `No data available for the selected ${reportPeriod} period.`,
+                description: `No data available for the selected date range.`,
                 variant: "destructive",
             });
             return;
         }
 
-        XLSX.writeFile(wb, `BB-Sales-Pro-${reportPeriod}-report-${format(now, 'yyyy-MM-dd')}.xlsx`);
+        XLSX.writeFile(wb, `BB-Sales-Pro-report-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.xlsx`);
 
         toast({
             title: "Report Generated",
-            description: `Your ${reportPeriod} report has been downloaded.`,
+            description: `Your report has been downloaded.`,
         });
     };
 
@@ -425,17 +433,44 @@ export default function SettingsPage() {
                     <CardDescription>Generate and export reports for sales, customers, and interactions.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                         <Label htmlFor="report-period">Report Period</Label>
-                         <Select value={reportPeriod} onValueChange={(value) => setReportPeriod(value as 'weekly' | 'monthly')}>
-                            <SelectTrigger id="report-period" className="w-[180px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="weekly">Weekly</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                            </SelectContent>
-                         </Select>
+                    <div className="grid gap-2">
+                        <Label>Report Period</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !dateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                dateRange.to ? (
+                                    <>
+                                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                                    {format(dateRange.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(dateRange.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Pick a date</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                            />
+                            </PopoverContent>
+                        </Popover>
                     </div>
                      <Button className="w-full" onClick={handleGenerateReport}>
                         <Download className="mr-2 h-4 w-4" />
@@ -447,3 +482,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    

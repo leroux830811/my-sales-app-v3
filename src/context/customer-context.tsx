@@ -12,6 +12,7 @@ type CustomerContextType = {
   updateCustomerAddress: (customerId: string, address: string) => void;
   updateCustomerField: (customerId: string, field: keyof Omit<Customer, 'id' | 'status'>, value: string) => void;
   updateCustomerStatus: (customerId: string, status: Customer['status']) => void;
+  deleteCustomer: (customerId: string) => void;
 };
 
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
@@ -51,8 +52,14 @@ export function CustomerProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const deleteCustomer = (customerId: string) => {
+    setCustomers(prev => prev.filter(c => c.id !== customerId));
+    // Here you would also delete related interactions, orders, etc.
+    // For simplicity, we are only deleting the customer for now.
+  }
+
   return (
-    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage, updateCustomerAddress, updateCustomerField, updateCustomerStatus }}>
+    <CustomerContext.Provider value={{ customers, setCustomers, updateCustomerImage, updateCustomerAddress, updateCustomerField, updateCustomerStatus, deleteCustomer }}>
       {children}
     </CustomerContext.Provider>
   );

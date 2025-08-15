@@ -4,22 +4,25 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin } from "lucide-react";
+import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2 } from "lucide-react";
 import { interactions, type Customer } from "@/lib/data";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { exportToExcel } from '@/lib/excel';
 import { Input } from "@/components/ui/input";
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useCustomers } from '@/context/customer-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function CustomersPage() {
-  const { customers, updateCustomerField, updateCustomerStatus } = useCustomers();
+  const { customers, updateCustomerField, updateCustomerStatus, deleteCustomer } = useCustomers();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -62,6 +65,15 @@ export default function CustomersPage() {
     if (selectedCustomer && selectedCustomer.id === customerId) {
         setSelectedCustomer({...selectedCustomer, status: status});
     }
+  }
+
+  const handleDeleteCustomer = (customerId: string) => {
+    deleteCustomer(customerId);
+    setSelectedCustomer(null);
+    toast({
+      title: "Customer Deleted",
+      description: "The customer has been permanently removed.",
+    });
   }
 
   const filteredCustomers = customers.filter(customer =>
@@ -131,6 +143,29 @@ export default function CustomersPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setSelectedCustomer(customer)}>View Details</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                       <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the customer and all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteCustomer(customer.id)}>Continue</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -141,7 +176,7 @@ export default function CustomersPage() {
       </div>
 
        <Sheet open={!!selectedCustomer} onOpenChange={(isOpen) => !isOpen && setSelectedCustomer(null)}>
-            <SheetContent className="sm:max-w-lg w-full">
+            <SheetContent className="sm:max-w-lg w-full flex flex-col">
                 {selectedCustomer && (
                     <>
                         <SheetHeader className="pb-4">
@@ -158,7 +193,7 @@ export default function CustomersPage() {
                                 </div>
                             </div>
                         </SheetHeader>
-                        <div className="space-y-4">
+                        <div className="space-y-4 flex-1 overflow-y-auto pr-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name"><User className="inline-block mr-2 h-4 w-4" />Customer Name</Label>
                                 <Input id="name" defaultValue={selectedCustomer.name} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'name', e.target.value)} />
@@ -200,6 +235,32 @@ export default function CustomersPage() {
                                 </Select>
                             </div>
                         </div>
+                        <SheetFooter className="pt-4">
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" className="w-full">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete Customer
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the customer and all their associated data from the app.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-destructive hover:bg-destructive/90"
+                                        onClick={() => handleDeleteCustomer(selectedCustomer.id)}
+                                    >
+                                        Yes, delete customer
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </SheetFooter>
                     </>
                 )}
             </SheetContent>
@@ -207,3 +268,5 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+    
