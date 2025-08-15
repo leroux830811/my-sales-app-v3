@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, Activity, Bell, Package } from "lucide-react";
+import { DollarSign, Users, Activity, Bell, Package, Zap } from "lucide-react";
 import { format, subDays, startOfDay } from "date-fns";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
@@ -13,6 +13,7 @@ import { useProducts } from "@/context/product-context";
 import { useOrders } from "@/context/order-context";
 import { useReminders } from "@/context/reminder-context";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import type { Interaction } from "@/lib/data";
 
 export default function DashboardPage() {
   const { customers } = useCustomers();
@@ -31,6 +32,17 @@ export default function DashboardPage() {
     });
     return total;
   };
+
+  const getInteractionBadgeVariant = (type: Interaction['type']): "secondary" | "outline" | "destructive" => {
+    switch (type) {
+        case 'Competitor Activity':
+            return 'destructive';
+        case 'Email':
+            return 'secondary';
+        default:
+            return 'outline';
+    }
+  }
 
   const totalSales = orders.reduce((acc, order) => acc + getOrderTotal(order.items), 0);
   
@@ -152,7 +164,10 @@ export default function DashboardPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={interaction.type === "Email" ? "secondary" : "outline"}>{interaction.type}</Badge>
+                          <Badge variant={getInteractionBadgeVariant(interaction.type)}>
+                            {interaction.type === 'Competitor Activity' && <Zap className="mr-1 h-3 w-3" />}
+                            {interaction.type}
+                          </Badge>
                         </TableCell>
                         <TableCell>{format(new Date(interaction.date), "PPP")}</TableCell>
                         <TableCell className="max-w-[200px] truncate">{interaction.notes}</TableCell>

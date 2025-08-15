@@ -23,7 +23,7 @@ export type Product = {
 export type Interaction = {
   id: string;
   customerId: string;
-  type: "Call" | "Email" | "Meeting";
+  type: "Call" | "Email" | "Meeting" | "Competitor Activity";
   date: string;
   notes: string;
 };

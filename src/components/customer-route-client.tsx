@@ -20,8 +20,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera, Navigation, UserPlus, X } from "lucide-react";
-import type { Customer, Product } from "@/lib/data";
+import { MapPin, StickyNote, Package, PlusCircle, Check, ChevronsUpDown, ShoppingCart, MinusCircle, Search, Camera, Navigation, UserPlus, X, Zap } from "lucide-react";
+import type { Customer, Interaction, Product } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Separator } from "./ui/separator";
 import { useCustomers } from "@/context/customer-context";
@@ -52,6 +52,7 @@ export default function CustomerRouteClient() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
+  const [competitorNoteText, setCompetitorNoteText] = useState("");
   const { toast } = useToast();
   const [order, setOrder] = useState<Map<string, number>>(new Map());
   const [productSearch, setProductSearch] = useState("");
@@ -94,8 +95,8 @@ export default function CustomerRouteClient() {
     setOpen(false);
   };
 
-  const handleSaveNote = () => {
-    if (!selectedCustomerId || !noteText.trim()) {
+  const handleSaveNote = (type: Interaction['type'], text: string, setText: (value: string) => void) => {
+    if (!selectedCustomerId || !text.trim()) {
         toast({
             title: "Note is empty",
             description: "Please write a note before saving.",
@@ -105,13 +106,13 @@ export default function CustomerRouteClient() {
     };
     addInteraction({
       customerId: selectedCustomerId,
-      notes: noteText,
-      type: "Meeting", // Defaulting to meeting, can be changed later
+      notes: text,
+      type: type,
     });
-    setNoteText("");
+    setText("");
     toast({
         title: "Note Saved",
-        description: "Your interaction has been logged."
+        description: `Your ${type === 'Meeting' ? 'interaction' : 'competitor note'} has been logged.`
     })
   };
 
@@ -364,8 +365,9 @@ export default function CustomerRouteClient() {
                      <Card>
                         <CardContent className="p-6">
                             <Tabs defaultValue="notes">
-                                <TabsList className="grid w-full grid-cols-2">
-                                    <TabsTrigger value="notes"><StickyNote className="mr-2"/> Notes & Interactions</TabsTrigger>
+                                <TabsList className="grid w-full grid-cols-3">
+                                    <TabsTrigger value="notes"><StickyNote className="mr-2"/> Interactions</TabsTrigger>
+                                    <TabsTrigger value="competitor"><Zap className="mr-2"/> Competitor Activity</TabsTrigger>
                                     <TabsTrigger value="order"><Package className="mr-2"/> Place Order</TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="notes">
@@ -378,7 +380,7 @@ export default function CustomerRouteClient() {
                                           onChange={(e) => setNoteText(e.target.value)}
                                         />
                                         <div className="flex gap-2">
-                                            <Button size="sm" onClick={handleSaveNote}>Save Note</Button>
+                                            <Button size="sm" onClick={() => handleSaveNote('Meeting', noteText, setNoteText)}>Save Note</Button>
                                             <DialogTrigger asChild>
                                                 <Button size="sm" variant="outline" onClick={() => setCameraPurpose('interaction')}>
                                                     <Camera className="mr-2 h-4 w-4"/>
@@ -391,13 +393,40 @@ export default function CustomerRouteClient() {
                                     <div>
                                         <h3 className="font-semibold mb-4">Past Interactions</h3>
                                         <div className="space-y-4">
-                                            {customerInteractions.map(interaction => (
+                                            {customerInteractions.filter(i => i.type !== 'Competitor Activity').map(interaction => (
                                                 <div key={interaction.id} className="text-sm">
                                                     <p className="font-medium">{format(new Date(interaction.date), "PPP")} - {interaction.type}</p>
                                                     <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
                                                 </div>
                                             ))}
-                                             {customerInteractions.length === 0 && <p className="text-muted-foreground text-sm">No past interactions logged.</p>}
+                                             {customerInteractions.filter(i => i.type !== 'Competitor Activity').length === 0 && <p className="text-muted-foreground text-sm">No past interactions logged.</p>}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="competitor">
+                                     <div className="mt-4">
+                                        <h3 className="font-semibold mb-2">Log Competitor Activity</h3>
+                                        <Textarea 
+                                          placeholder={`Add a note about competitor activity at ${selectedCustomer.name}...`} 
+                                          className="mb-2"
+                                          value={competitorNoteText}
+                                          onChange={(e) => setCompetitorNoteText(e.target.value)}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={() => handleSaveNote('Competitor Activity', competitorNoteText, setCompetitorNoteText)}>Save Note</Button>
+                                        </div>
+                                    </div>
+                                    <Separator className="my-6"/>
+                                    <div>
+                                        <h3 className="font-semibold mb-4">Past Competitor Activity</h3>
+                                        <div className="space-y-4">
+                                            {customerInteractions.filter(i => i.type === 'Competitor Activity').map(interaction => (
+                                                <div key={interaction.id} className="text-sm">
+                                                    <p className="font-medium">{format(new Date(interaction.date), "PPP")}</p>
+                                                    <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
+                                                </div>
+                                            ))}
+                                             {customerInteractions.filter(i => i.type === 'Competitor Activity').length === 0 && <p className="text-muted-foreground text-sm">No past competitor activity logged.</p>}
                                         </div>
                                     </div>
                                 </TabsContent>
