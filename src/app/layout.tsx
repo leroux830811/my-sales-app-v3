@@ -11,7 +11,6 @@ import { ReminderProvider } from '@/context/reminder-context';
 import { ThemeProvider } from '@/context/theme-context';
 import { RouteProvider } from '@/context/route-context';
 import { StockReturnProvider } from '@/context/stock-return-context';
-import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
@@ -36,7 +35,6 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
             <ThemeProvider>
             <CustomerProvider>
                 <ProductProvider>
@@ -58,7 +56,6 @@ export default function RootLayout({
                 </ProductProvider>
             </CustomerProvider>
             </ThemeProvider>
-        </AuthProvider>
         <Toaster />
       </body>
     </html>
