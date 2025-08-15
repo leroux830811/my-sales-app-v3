@@ -470,7 +470,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                             <Tabs defaultValue="notes">
                                 <TabsList className="grid w-full grid-cols-4">
                                     <TabsTrigger value="notes"><StickyNote className="mr-2"/> Interactions</TabsTrigger>
-                                    <TabsTrigger value="competitor"><Zap className="mr-2"/> Competitor Activity</TabsTrigger>
+                                    <TabsTrigger value="competitor"><Zap className="mr-2"/> Comp Act</TabsTrigger>
                                     <TabsTrigger value="order"><Package className="mr-2"/> Place Order</TabsTrigger>
                                     <TabsTrigger value="return"><Undo2 className="mr-2"/> Stock Return</TabsTrigger>
                                 </TabsList>
