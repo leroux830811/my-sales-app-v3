@@ -11,11 +11,12 @@ import { ReminderProvider } from '@/context/reminder-context';
 import { ThemeProvider } from '@/context/theme-context';
 import { RouteProvider } from '@/context/route-context';
 import { StockReturnProvider } from '@/context/stock-return-context';
+import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
   title: 'BB Sales Pro',
   description: 'CRM for sales representatives',
-  manifest: '/manifest.json',
+  manifest: '/public/manifest.json',
 };
 
 export default function RootLayout({
@@ -32,29 +33,32 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap"
           rel="stylesheet"
         />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider>
-          <CustomerProvider>
-            <ProductProvider>
-              <InteractionProvider>
-                <OrderProvider>
-                  <PhotoProvider>
-                    <ReminderProvider>
-                      <RouteProvider>
-                        <StockReturnProvider>
-                          <AppLayout>
-                              {children}
-                          </AppLayout>
-                        </StockReturnProvider>
-                      </RouteProvider>
-                    </ReminderProvider>
-                  </PhotoProvider>
-                </OrderProvider>
-              </InteractionProvider>
-            </ProductProvider>
-          </CustomerProvider>
-        </ThemeProvider>
+        <AuthProvider>
+            <ThemeProvider>
+            <CustomerProvider>
+                <ProductProvider>
+                <InteractionProvider>
+                    <OrderProvider>
+                    <PhotoProvider>
+                        <ReminderProvider>
+                        <RouteProvider>
+                            <StockReturnProvider>
+                            <AppLayout>
+                                {children}
+                            </AppLayout>
+                            </StockReturnProvider>
+                        </RouteProvider>
+                        </ReminderProvider>
+                    </PhotoProvider>
+                    </OrderProvider>
+                </InteractionProvider>
+                </ProductProvider>
+            </CustomerProvider>
+            </ThemeProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

@@ -18,6 +18,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/login',
+        permanent: false,
+        missing: [
+          {
+            type: 'cookie',
+            key: 'user', // A placeholder; actual auth state is handled in AuthContext
+          },
+        ],
+      },
+    ]
+  },
 };
 
 export default nextConfig;

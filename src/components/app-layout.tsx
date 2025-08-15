@@ -4,7 +4,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -27,9 +27,12 @@ import {
   Camera,
   Settings,
   MapPin,
+  LogOut
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useTheme } from "@/context/theme-context";
+import { useAuth } from "@/context/auth-context";
+import { Skeleton } from "./ui/skeleton";
 
 const menuItems = [
   {
@@ -87,7 +90,9 @@ const KameeldoringTreeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { logo, setLogo } = useTheme();
+  const router = useRouter();
+  const { theme, logo, setLogo } = useTheme();
+  const { user, loading, logout } = useAuth();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleLogoClick = () => {
@@ -107,6 +112,46 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         fileInputRef.current.value = "";
     }
   };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  }
+
+  // If loading, show a skeleton UI
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="p-4 space-y-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+            </div>
+        </div>
+    );
+  }
+
+  // If not logged in and not on the login page, redirect
+  if (!user && pathname !== '/login') {
+    if (typeof window !== 'undefined') {
+        router.push('/login');
+    }
+    return null; // or a loading spinner
+  }
+  
+  // If logged in and on the login page, redirect to dashboard
+  if (user && pathname === '/login') {
+     if (typeof window !== 'undefined') {
+        router.push('/');
+     }
+     return null;
+  }
+
+  // If not logged in, show the children (which should be the login page)
+  if (!user) {
+    return <>{children}</>;
+  }
+
 
   return (
     <SidebarProvider>
@@ -149,6 +194,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
+             <SidebarMenuItem>
+                 <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
+                    <LogOut />
+                    <span>Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/settings">
                     <SidebarMenuButton
