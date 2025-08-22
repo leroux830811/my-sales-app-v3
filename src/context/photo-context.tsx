@@ -1,6 +1,8 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 export type GeneralPhoto = {
   id: string;
@@ -17,7 +19,7 @@ type PhotoContextType = {
 const PhotoContext = createContext<PhotoContextType | undefined>(undefined);
 
 export function PhotoProvider({ children }: { children: ReactNode }) {
-  const [photos, setPhotos] = useState<GeneralPhoto[]>([]);
+  const [photos, setPhotos] = useLocalStorage<GeneralPhoto[]>('photos', []);
 
   const addPhoto = (imageDataUri: string, description?: string) => {
     const newPhoto: GeneralPhoto = {

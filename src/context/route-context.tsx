@@ -2,6 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 type RouteContextType = {
   routeCustomerIds: string[];
@@ -13,7 +14,7 @@ type RouteContextType = {
 const RouteContext = createContext<RouteContextType | undefined>(undefined);
 
 export function RouteProvider({ children }: { children: ReactNode }) {
-  const [routeCustomerIds, setRouteCustomerIds] = useState<string[]>([]);
+  const [routeCustomerIds, setRouteCustomerIds] = useLocalStorage<string[]>('routeCustomerIds', []);
 
   const addToRoute = useCallback((customerId: string) => {
     setRouteCustomerIds(prev => {
@@ -22,15 +23,15 @@ export function RouteProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, customerId];
     });
-  }, []);
+  }, [setRouteCustomerIds]);
 
   const removeFromRoute = useCallback((customerId: string) => {
     setRouteCustomerIds(prev => prev.filter(id => id !== customerId));
-  }, []);
+  }, [setRouteCustomerIds]);
 
   const clearRoute = useCallback(() => {
     setRouteCustomerIds([]);
-  }, []);
+  }, [setRouteCustomerIds]);
 
   return (
     <RouteContext.Provider value={{ routeCustomerIds, addToRoute, removeFromRoute, clearRoute }}>

@@ -1,8 +1,10 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Reminder } from '@/lib/data';
 import { reminders as initialReminders } from '@/lib/data';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 type ReminderContextType = {
   reminders: Reminder[];
@@ -14,7 +16,7 @@ type ReminderContextType = {
 const ReminderContext = createContext<ReminderContextType | undefined>(undefined);
 
 export function ReminderProvider({ children }: { children: ReactNode }) {
-  const [reminders, setReminders] = useState<Reminder[]>(initialReminders);
+  const [reminders, setReminders] = useLocalStorage<Reminder[]>('reminders', initialReminders);
 
   const addReminder = (reminder: Omit<Reminder, 'id'>) => {
     const newReminder: Reminder = {

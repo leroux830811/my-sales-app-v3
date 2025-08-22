@@ -1,8 +1,10 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Interaction } from '@/lib/data';
 import { interactions as initialInteractions } from '@/lib/data';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 type InteractionContextType = {
   interactions: Interaction[];
@@ -13,7 +15,7 @@ type InteractionContextType = {
 const InteractionContext = createContext<InteractionContextType | undefined>(undefined);
 
 export function InteractionProvider({ children }: { children: ReactNode }) {
-  const [interactions, setInteractions] = useState<Interaction[]>(initialInteractions);
+  const [interactions, setInteractions] = useLocalStorage<Interaction[]>('interactions', initialInteractions);
 
   const addInteraction = (interaction: Omit<Interaction, 'id' | 'date'>) => {
     const newInteraction: Interaction = {

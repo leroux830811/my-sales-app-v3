@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Product } from '@/lib/data';
 import { products as initialProducts } from '@/lib/data';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 type ProductContextType = {
   products: Product[];
@@ -13,7 +14,7 @@ type ProductContextType = {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useLocalStorage<Product[]>('products', initialProducts);
 
   return (
     <ProductContext.Provider value={{ products, setProducts }}>

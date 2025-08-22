@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import type { Customer } from '@/lib/data';
 import { customers as initialCustomers } from '@/lib/data';
+import useLocalStorage from '@/hooks/use-local-storage';
 
 type CustomerContextType = {
   customers: Customer[];
@@ -18,7 +19,7 @@ type CustomerContextType = {
 const CustomerContext = createContext<CustomerContextType | undefined>(undefined);
 
 export function CustomerProvider({ children }: { children: ReactNode }) {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useLocalStorage<Customer[]>('customers', initialCustomers);
 
   const updateCustomerImage = (customerId: string, imageUrl: string) => {
     setCustomers(prev => 
@@ -72,5 +73,3 @@ export function useCustomers() {
   }
   return context;
 }
-
-    
