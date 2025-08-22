@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2 } from "lucide-react";
+import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2, ChevronRight } from "lucide-react";
 import { type Customer } from "@/lib/data";
 import { interactions } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 export default function CustomersPage() {
@@ -89,7 +90,7 @@ export default function CustomersPage() {
         <div className="flex items-center space-x-2">
           <Button onClick={handleExport}>
             <FileDown className="mr-2 h-4 w-4" />
-            Export XLSX
+            <span className="hidden sm:inline">Export XLSX</span>
           </Button>
         </div>
       </div>
@@ -103,7 +104,34 @@ export default function CustomersPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
           />
       </div>
-      <div className="rounded-md border">
+      
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredCustomers.map(customer => (
+           <Card key={customer.id} onClick={() => setSelectedCustomer(customer)} className="cursor-pointer">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                   <Avatar className="h-10 w-10">
+                      <AvatarImage src={`https://placehold.co/40x40.png?text=${customer.name.charAt(0)}`} />
+                      <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                   </Avatar>
+                   <div>
+                    <p className="font-semibold">{customer.name}</p>
+                    <p className="text-sm text-muted-foreground">{customer.town}</p>
+                   </div>
+                </div>
+                 <div className='flex items-center gap-2'>
+                  <Badge variant={getStatusVariant(customer.status)}>{customer.status}</Badge>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground"/>
+                 </div>
+              </CardContent>
+           </Card>
+        ))}
+      </div>
+
+
+      {/* Desktop Table View */}
+      <div className="rounded-md border hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -269,5 +297,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-
-    

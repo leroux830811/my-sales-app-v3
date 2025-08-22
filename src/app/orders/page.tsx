@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -49,7 +50,40 @@ export default function OrdersPage() {
             </CardContent>
         </Card>
       ) : (
-        <Card>
+        <>
+        {/* Mobile View */}
+        <div className="md:hidden space-y-3">
+          {orders.map(order => {
+            const customer = customers.find(c => c.id === order.customerId);
+            return (
+              <Card key={order.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex justify-between">
+                    <span>{customer?.name || 'Unknown Customer'}</span>
+                    <span className="font-mono text-sm text-muted-foreground">#{order.id.slice(-6)}</span>
+                  </CardTitle>
+                  <CardDescription>{format(new Date(order.date), "PPP")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <div className='flex flex-wrap gap-1 mb-3'>
+                      {Array.from(order.items.entries()).map(([productId, quantity]) => {
+                        const product = products.find(p => p.id === productId);
+                        return (
+                          <Badge key={productId} variant="secondary">
+                            {product?.name || 'Unknown Product'} x {quantity}
+                          </Badge>
+                        );
+                      })}
+                    </div>
+                  <div className="text-right font-bold text-lg">R{getOrderTotal(order.items).toFixed(2)}</div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+
+        {/* Desktop View */}
+        <Card className="hidden md:block">
           <CardContent className="pt-6">
             <Table>
               <TableHeader>
@@ -89,6 +123,7 @@ export default function OrdersPage() {
             </Table>
           </CardContent>
         </Card>
+        </>
       )}
     </div>
   );
