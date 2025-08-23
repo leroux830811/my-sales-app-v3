@@ -40,6 +40,7 @@ import { useRoute } from "@/context/route-context";
 import { ScrollArea } from "./ui/scroll-area";
 import { useStockReturns } from "@/context/stock-return-context";
 import { Label } from "./ui/label";
+import { Checkbox } from "./ui/checkbox";
 import {
   Tooltip,
   TooltipContent,
@@ -75,6 +76,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraPurpose, setCameraPurpose] = useState<'storefront' | 'interaction' | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [productChecklist, setProductChecklist] = useState<Map<string, boolean>>(new Map());
 
   useEffect(() => {
     setIsClient(true);
@@ -122,6 +124,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     setOrder(new Map()); // Reset order when customer changes
     setStockReturnItems(new Map()); // Reset returns
     setStockReturnReason("");
+    setProductChecklist(new Map());
     setOpen(false);
   };
 
@@ -136,26 +139,56 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
   }
 
   const handleSaveNote = (type: Interaction['type'], text: string, setText: (value: string) => void) => {
-    if (!selectedCustomerId || !text.trim()) {
+    if (!selectedCustomerId) {
         toast({
-            title: "Note is empty",
-            description: "Please write a note before saving.",
+            title: "No customer selected",
             variant: "destructive"
         })
         return;
     };
+    
+    let noteToSave = text;
+    const checkedProducts = Array.from(productChecklist.entries()).filter(([, isChecked]) => isChecked);
+
+    if (checkedProducts.length > 0) {
+        let checklistText = "\n\n---\n*Product Stock Check:*\n";
+        products.forEach(product => {
+            const isChecked = productChecklist.get(product.id);
+            if (isChecked) {
+                 checklistText += `- ${product.name}: In Stock\n`;
+            }
+        });
+        noteToSave += checklistText;
+    }
+    
+    if (!noteToSave.trim()) {
+        toast({
+            title: "Note is empty",
+            description: "Please write a note or check a product before saving.",
+            variant: "destructive"
+        })
+        return;
+    }
+
     addInteraction({
       customerId: selectedCustomerId,
-      notes: text,
+      notes: noteToSave,
       type: type,
     });
     setText("");
+    setProductChecklist(new Map());
     toast({
         title: "Note Saved",
         description: `Your ${type === 'Meeting' ? 'interaction' : 'competitor note'} has been logged.`
     });
     handleInteractionCompletion();
   };
+  
+  const handleProductChecklistChange = (productId: string, isChecked: boolean) => {
+    const newChecklist = new Map(productChecklist);
+    newChecklist.set(productId, isChecked);
+    setProductChecklist(newChecklist);
+  }
 
   const handleUpdateItemQuantity = (
     productId: string, 
@@ -493,6 +526,23 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                                           value={noteText}
                                           onChange={(e) => setNoteText(e.target.value)}
                                         />
+                                        <Separator className="my-4"/>
+                                        <h3 className="font-semibold mb-2">Product Checklist</h3>
+                                        <ScrollArea className="h-48 border rounded-md p-4">
+                                            <div className="space-y-3">
+                                                {products.map(product => (
+                                                     <div key={product.id} className="flex items-center space-x-2">
+                                                        <Checkbox 
+                                                            id={`product-${product.id}`} 
+                                                            checked={productChecklist.get(product.id) || false}
+                                                            onCheckedChange={(checked) => handleProductChecklistChange(product.id, !!checked)}
+                                                        />
+                                                        <Label htmlFor={`product-${product.id}`} className="font-normal cursor-pointer">{product.name}</Label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                         <Separator className="my-4"/>
                                         <div className="flex gap-2">
                                             <Button size="sm" onClick={() => handleSaveNote('Meeting', noteText, setNoteText)}>Save Note</Button>
                                             <DialogTrigger asChild>
@@ -510,7 +560,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                                             {customerInteractions.filter(i => i.type !== 'Competitor Activity').map(interaction => (
                                                 <div key={interaction.id} className="text-sm">
                                                     <p className="font-medium">{format(new Date(interaction.date), "PPP")} - {interaction.type}</p>
-                                                    <p className="text-muted-foreground pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
+                                                    <p className="text-muted-foreground whitespace-pre-wrap pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
                                                 </div>
                                             ))}
                                              {customerInteractions.filter(i => i.type !== 'Competitor Activity').length === 0 && <p className="text-muted-foreground text-sm">No past interactions logged.</p>}
@@ -617,3 +667,4 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     </div>
   );
 }
+
