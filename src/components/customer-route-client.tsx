@@ -70,10 +70,13 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   
-  const routeCustomerData = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
+  const todaysRoute = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
+  
   const routeCustomers = useMemo(() => {
-    return customers.filter(c => routeCustomerData.some(rc => rc.id === c.id));
-  }, [customers, routeCustomerData]);
+    // Show only customers that have not been completed yet in the dropdown
+    const uncompletedCustomerIds = todaysRoute.filter(rc => !rc.completed).map(rc => rc.id);
+    return customers.filter(c => uncompletedCustomerIds.includes(c.id));
+  }, [customers, todaysRoute]);
 
   const customerInteractions = interactions
     .filter(i => i.customerId === selectedCustomerId)
@@ -113,6 +116,10 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const handleInteractionCompletion = () => {
     if (selectedCustomerId && mode === 'route') {
       markCustomerAsCompleted(selectedCustomerId);
+       // After completing, if the current customer was the last one, clear the selection
+      if (routeCustomers.length === 1 && routeCustomers[0].id === selectedCustomerId) {
+        setSelectedCustomerId(null);
+      }
     }
   }
 
@@ -345,7 +352,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                     >
                         {selectedCustomerId
                         ? customers.find((customer) => customer.id === selectedCustomerId)?.name
-                        : mode === 'route' ? (routeCustomers.length > 0 ? "Select from today's route..." : "No customers planned for today") : "Select a customer..."}
+                        : mode === 'route' ? (routeCustomers.length > 0 ? "Select from today's route..." : "All customers for today completed!") : "Select a customer..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                     </PopoverTrigger>
@@ -546,8 +553,9 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
        {!selectedCustomer && (
             <Card className="flex items-center justify-center h-96">
                 <div className="text-center text-muted-foreground">
-                     {mode === 'route' && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
-                     {mode === 'route' && routeCustomers.length === 0 ? <p>You have no customers planned for today.</p> : null}
+                     {mode === 'route' && todaysRoute.length > 0 && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
+                     {mode === 'route' && todaysRoute.length === 0 ? <p>You have no customers planned for today.</p> : null}
+                     {mode === 'route' && todaysRoute.length > 0 && routeCustomers.length === 0 ? <p>Congratulations! You've completed all calls for today.</p> : null}
                      {mode === 'all' && <p>Select a customer to begin.</p>}
                 </div>
             </Card>
