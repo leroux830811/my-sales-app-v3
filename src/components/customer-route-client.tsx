@@ -46,7 +46,7 @@ interface CustomerRouteClientProps {
     mode: 'route' | 'all';
 }
 
-export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) {
+export default function CustomerRouteClient({ mode: initialMode }: CustomerRouteClientProps) {
   const { customers, updateCustomerImage, updateCustomerAddress } = useCustomers();
   const { products } = useProducts();
   const { interactions, addInteraction } = useInteractions();
@@ -56,6 +56,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const { getTodaysRoute, markCustomerAsCompleted } = useRoute();
   const { addStockReturn } = useStockReturns();
 
+  const [mode, setMode] = useState(initialMode);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
@@ -345,7 +346,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
            )}
         </CardHeader>
         <CardContent>
-            <div >
+            <div className="flex gap-2 items-center">
                  <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                     <Button
@@ -387,6 +388,12 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                     </Command>
                     </PopoverContent>
                 </Popover>
+                 {mode === 'route' && (
+                    <Button variant="secondary" onClick={() => setMode('all')}>Log Ad-hoc Call</Button>
+                 )}
+                 {mode === 'all' && (
+                     <Button variant="secondary" onClick={() => setMode('route')}>Back to Route</Button>
+                 )}
             </div>
         </CardContent>
       </Card>
@@ -569,3 +576,5 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     </div>
   );
 }
+
+    
