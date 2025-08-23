@@ -3,26 +3,26 @@
 
 import React from 'react';
 import { Calendar } from "@/components/ui/calendar";
-import { useReminders } from '@/context/reminder-context';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
+import { useRoute } from '@/context/route-context';
+import { Card, CardContent } from './ui/card';
 import { format } from 'date-fns';
 import { useCustomers } from '@/context/customer-context';
+import { ScrollArea } from './ui/scroll-area';
+import { Button } from './ui/button';
+import { PlusCircle, X } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 export function PlanningCalendar() {
-    const { reminders } = useReminders();
+    const { plannedRoutes, addCustomerToDate, removeCustomerFromDate, getRouteForDate } = useRoute();
     const { customers } = useCustomers();
     const [date, setDate] = React.useState<Date | undefined>(new Date());
 
-    const remindersByDate = reminders.reduce((acc, reminder) => {
-        const dateStr = format(new Date(reminder.date), 'yyyy-MM-dd');
-        if (!acc[dateStr]) {
-            acc[dateStr] = [];
-        }
-        acc[dateStr].push(reminder);
-        return acc;
-    }, {} as Record<string, typeof reminders>);
+    const selectedDate = date || new Date();
+    const customersForSelectedDate = getRouteForDate(selectedDate);
 
+    const customersOnRoute = customers.filter(c => customersForSelectedDate.includes(c.id));
+    const customersNotOnRoute = customers.filter(c => !customersForSelectedDate.includes(c.id));
+    
     return (
         <Card className="h-full flex flex-col">
             <CardContent className="flex-1 flex flex-col md:flex-row gap-6 p-4">
@@ -39,11 +39,11 @@ export function PlanningCalendar() {
                         components={{
                             DayContent: ({ date, ...props }) => {
                                 const dateStr = format(date, 'yyyy-MM-dd');
-                                const dayReminders = remindersByDate[dateStr];
+                                const dayRoute = plannedRoutes[dateStr];
                                 return (
                                     <div className="relative h-full w-full flex items-center justify-center">
                                         <span>{format(date, 'd')}</span>
-                                        {dayReminders && (
+                                        {dayRoute && dayRoute.length > 0 && (
                                              <div className="absolute bottom-1 w-2 h-2 rounded-full bg-primary" />
                                         )}
                                     </div>
@@ -52,25 +52,45 @@ export function PlanningCalendar() {
                         }}
                     />
                 </div>
-                <div className="md:w-1/3 flex-1">
+                <div className="md:w-2/3 flex-1 flex flex-col">
                     <h3 className="text-lg font-semibold mb-4">
-                        {date ? format(date, "MMMM do, yyyy") : "Select a date"}
+                        Plan for {format(selectedDate, "MMMM do, yyyy")}
                     </h3>
-                    <div className="space-y-4">
-                        {date && remindersByDate[format(date, 'yyyy-MM-dd')] ? (
-                            remindersByDate[format(date, 'yyyy-MM-dd')].map(reminder => {
-                                const customer = reminder.customerId ? customers.find(c => c.id === reminder.customerId) : null;
-                                return (
-                                    <div key={reminder.id} className="p-3 rounded-md bg-muted">
-                                        <Badge className='mb-2'>{customer ? 'Customer' : 'General'}</Badge>
-                                        <p className="font-medium">{reminder.notes}</p>
-                                        {customer && <p className="text-sm text-muted-foreground">{customer.name}</p>}
+                    <div className="grid grid-cols-2 gap-6 flex-1">
+                        <div className="flex flex-col">
+                           <h4 className="font-medium mb-2">On Route ({customersOnRoute.length})</h4>
+                            <ScrollArea className="flex-1 -mr-4">
+                                <div className='pr-4 space-y-2'>
+                                {customersOnRoute.length > 0 ? (
+                                    customersOnRoute.map(customer => (
+                                    <div key={customer.id} className="p-2 rounded-md bg-muted flex items-center justify-between">
+                                        <p className="font-medium text-sm">{customer.name}</p>
+                                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeCustomerFromDate(customer.id, selectedDate)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
                                     </div>
-                                )
-                            })
-                        ) : (
-                            <p className="text-muted-foreground text-sm">No reminders for this date.</p>
-                        )}
+                                ))
+                                ) : (
+                                    <p className="text-muted-foreground text-sm text-center pt-8">No customers planned for this day.</p>
+                                )}
+                                </div>
+                           </ScrollArea>
+                        </div>
+                        <div className='flex flex-col'>
+                            <h4 className="font-medium mb-2">All Customers ({customersNotOnRoute.length})</h4>
+                            <ScrollArea className="flex-1 -mr-4">
+                                <div className='pr-4 space-y-2'>
+                                    {customersNotOnRoute.map(customer => (
+                                        <div key={customer.id} className="p-2 rounded-md border flex items-center justify-between">
+                                            <p className="font-medium text-sm">{customer.name}</p>
+                                            <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => addCustomerToDate(customer.id, selectedDate)}>
+                                                <PlusCircle className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                        </div>
                     </div>
                 </div>
             </CardContent>

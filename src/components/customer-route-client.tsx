@@ -53,7 +53,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const { addOrder } = useOrders();
   const { addPhoto } = usePhotos();
   const { reminders } = useReminders();
-  const { routeCustomerIds, addToRoute, removeFromRoute } = useRoute();
+  const { getTodaysRoute } = useRoute();
   const { addStockReturn } = useStockReturns();
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -70,12 +70,9 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   
+  const routeCustomerIds = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
   const routeCustomers = useMemo(() => {
     return customers.filter(c => routeCustomerIds.includes(c.id));
-  }, [customers, routeCustomerIds]);
-  
-  const availableCustomers = useMemo(() => {
-    return customers.filter(c => !routeCustomerIds.includes(c.id));
   }, [customers, routeCustomerIds]);
 
   const customerInteractions = interactions
@@ -316,8 +313,8 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
         <CardHeader>
            {mode === 'route' ? (
                 <>
-                <CardTitle>Route Planner</CardTitle>
-                <CardDescription>Build your route for the day, then select a customer from your route to begin.</CardDescription>
+                <CardTitle>Today's Route ({routeCustomers.length})</CardTitle>
+                <CardDescription>This list is pre-populated from your monthly plan. Select a customer to begin.</CardDescription>
                 </>
            ) : (
                 <>
@@ -327,63 +324,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
            )}
         </CardHeader>
         <CardContent>
-            {mode === 'route' && (
-                 <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h3 className="font-semibold mb-2">Today's Route ({routeCustomers.length})</h3>
-                        <Card className="min-h-48">
-                            <CardContent className="p-2">
-                                {routeCustomers.length > 0 ? (
-                                    <ScrollArea className="h-48">
-                                        <div className="space-y-2">
-                                            {routeCustomers.map(customer => (
-                                                <div key={customer.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                                    <span className="font-medium">{customer.name}</span>
-                                                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeFromRoute(customer.id)}>
-                                                        <X className="h-4 w-4"/>
-                                                    </Button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                ) : (
-                                    <div className="flex items-center justify-center h-48">
-                                        <p className="text-muted-foreground text-sm">Add customers from the list to start.</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold mb-2">Add to Route</h3>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start">
-                                    <UserPlus className="mr-2 h-4 w-4"/>
-                                    Add a customer...
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0 md:w-[--radix-popover-trigger-width]">
-                                <Command>
-                                    <CommandInput placeholder="Search customer..."/>
-                                    <CommandList>
-                                        <CommandEmpty>No available customers.</CommandEmpty>
-                                        <CommandGroup>
-                                            {availableCustomers.map(customer => (
-                                                <CommandItem key={customer.id} onSelect={() => addToRoute(customer.id)}>
-                                                    {customer.name}
-                                                </CommandItem>
-                                            ))}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
-            )}
-
-            <div className={cn(mode === 'route' && 'mt-6 pt-6 border-t')}>
+            <div >
                  <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                     <Button
@@ -395,7 +336,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                     >
                         {selectedCustomerId
                         ? customers.find((customer) => customer.id === selectedCustomerId)?.name
-                        : mode === 'route' ? "Select a customer from your route..." : "Select a customer..."}
+                        : mode === 'route' ? (routeCustomers.length > 0 ? "Select from today's route..." : "No customers planned for today") : "Select a customer..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                     </PopoverTrigger>
@@ -596,7 +537,9 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
        {!selectedCustomer && (
             <Card className="flex items-center justify-center h-96">
                 <div className="text-center text-muted-foreground">
-                    <p>Select a customer to begin.</p>
+                     {mode === 'route' && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
+                     {mode === 'route' && routeCustomers.length === 0 ? <p>You have no customers planned for today.</p> : null}
+                     {mode === 'all' && <p>Select a customer to begin.</p>}
                 </div>
             </Card>
         )}
