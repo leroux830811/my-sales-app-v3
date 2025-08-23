@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2, ChevronRight } from "lucide-react";
@@ -27,6 +27,11 @@ export default function CustomersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleExport = () => {
     exportToExcel(customers, 'bb-sales-pro-customers.xlsx');
@@ -107,7 +112,7 @@ export default function CustomersPage() {
       
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {filteredCustomers.map(customer => (
+        {isClient && filteredCustomers.map(customer => (
            <Card key={customer.id} onClick={() => setSelectedCustomer(customer)} className="cursor-pointer">
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -127,6 +132,7 @@ export default function CustomersPage() {
               </CardContent>
            </Card>
         ))}
+        {!isClient && <p>Loading customers...</p>}
       </div>
 
 
@@ -143,7 +149,7 @@ export default function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCustomers.map((customer) => (
+            {isClient && filteredCustomers.map((customer) => (
               <TableRow key={customer.id} onClick={() => setSelectedCustomer(customer)} className="cursor-pointer">
                 <TableCell className="font-medium">{customer.name}</TableCell>
                 <TableCell>{customer.town}</TableCell>
@@ -200,6 +206,11 @@ export default function CustomersPage() {
                 </TableCell>
               </TableRow>
             ))}
+            {!isClient && (
+                <TableRow>
+                    <TableCell colSpan={5} className="text-center">Loading customers...</TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
