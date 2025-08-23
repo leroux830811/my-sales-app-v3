@@ -79,8 +79,8 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     .filter(i => i.customerId === selectedCustomerId)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(productSearch.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    (product.name || '').toLowerCase().includes(productSearch.toLowerCase())
   );
   
   const customerList = mode === 'route' ? routeCustomers : customers;
@@ -546,3 +546,5 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     </div>
   );
 }
+
+    
