@@ -40,6 +40,12 @@ import { useRoute } from "@/context/route-context";
 import { ScrollArea } from "./ui/scroll-area";
 import { useStockReturns } from "@/context/stock-return-context";
 import { Label } from "./ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 
 interface CustomerRouteClientProps {
@@ -78,7 +84,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
   
   const todaysRoute = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
   
-  const routeCustomers = useMemo(() => {
+  const uncompletedRouteCustomers = useMemo(() => {
     // Show only customers that have not been completed yet in the dropdown
     const uncompletedCustomerIds = todaysRoute.filter(rc => !rc.completed).map(rc => rc.id);
     return customers.filter(c => uncompletedCustomerIds.includes(c.id));
@@ -89,10 +95,10 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const filteredProducts = products.filter(product =>
-    (product.name || '').toLowerCase().includes(productSearch.toLowerCase())
+    (product.name || "").toLowerCase().includes(productSearch.toLowerCase())
   );
   
-  const customerList = mode === 'route' ? routeCustomers : customers;
+  const customerList = mode === 'route' ? uncompletedRouteCustomers : customers;
 
   useEffect(() => {
     // Reset selected customer when mode changes
@@ -123,7 +129,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     if (selectedCustomerId && mode === 'route') {
       markCustomerAsCompleted(selectedCustomerId);
        // After completing, if the current customer was the last one, clear the selection
-      if (routeCustomers.length === 1 && routeCustomers[0].id === selectedCustomerId) {
+      if (uncompletedRouteCustomers.length === 1 && uncompletedRouteCustomers[0].id === selectedCustomerId) {
         setSelectedCustomerId(null);
       }
     }
@@ -331,11 +337,46 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
 
   return (
     <div>
+      <div className="flex items-center justify-between space-y-2 mb-4">
+        <div className="flex items-center gap-4">
+            <h2 className="text-3xl font-bold tracking-tight">Start Call</h2>
+            {isClient && todaysRoute.length > 0 && (
+                 <TooltipProvider>
+                    <div className="flex items-center -space-x-2">
+                        {todaysRoute.map(routeCustomer => {
+                             const customer = customers.find(c => c.id === routeCustomer.id);
+                             if (!customer) return null;
+                             return (
+                             <Tooltip key={customer.id}>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className={cn("p-0 h-10 w-10 rounded-full focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", selectedCustomerId === customer.id && 'ring-2 ring-primary ring-offset-2')}
+                                        onClick={() => handleCustomerChange(customer.id)}
+                                        disabled={routeCustomer.completed}
+                                    >
+                                     <Avatar className={cn("border-2 border-background", routeCustomer.completed && "ring-2 ring-green-500")}>
+                                        <AvatarImage src={`https://placehold.co/40x40.png?text=${customer.name.charAt(0)}`} />
+                                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{customer.name}</p>
+                                </TooltipContent>
+                             </Tooltip>
+                            )
+                        })}
+                    </div>
+                </TooltipProvider>
+            )}
+        </div>
+      </div>
        <Card className="mb-6">
         <CardHeader>
            {mode === 'route' ? (
                 <>
-                <CardTitle>Today's Route ({isClient ? routeCustomers.length : 0})</CardTitle>
+                <CardTitle>Today's Route ({isClient ? uncompletedRouteCustomers.length : 0})</CardTitle>
                 <CardDescription>This list is pre-populated from your monthly plan. Select a customer to begin.</CardDescription>
                 </>
            ) : (
@@ -354,11 +395,11 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                         role="combobox"
                         aria-expanded={open}
                         className="w-full justify-between md:w-1/2"
-                        disabled={mode === 'route' && routeCustomers.length === 0 && isClient}
+                        disabled={mode === 'route' && uncompletedRouteCustomers.length === 0 && isClient}
                     >
                         {selectedCustomerId
                         ? customers.find((customer) => customer.id === selectedCustomerId)?.name
-                        : mode === 'route' ? (isClient && routeCustomers.length > 0 ? "Select from today's route..." : "All customers for today completed!") : "Select a customer..."}
+                        : mode === 'route' ? (isClient && uncompletedRouteCustomers.length > 0 ? "Select from today's route..." : "All customers for today completed!") : "Select a customer..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                     </PopoverTrigger>
@@ -565,9 +606,9 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
        {!selectedCustomer && (
             <Card className="flex items-center justify-center h-96">
                 <div className="text-center text-muted-foreground">
-                     {isClient && mode === 'route' && todaysRoute.length > 0 && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
+                     {isClient && mode === 'route' && todaysRoute.length > 0 && uncompletedRouteCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
                      {isClient && mode === 'route' && todaysRoute.length === 0 ? <p>You have no customers planned for today.</p> : null}
-                     {isClient && mode === 'route' && todaysRoute.length > 0 && routeCustomers.length === 0 ? <p>Congratulations! You've completed all calls for today.</p> : null}
+                     {isClient && mode === 'route' && todaysRoute.length > 0 && uncompletedRouteCustomers.length === 0 ? <p>Congratulations! You've completed all calls for today.</p> : null}
                      {isClient && mode === 'all' && <p>Select a customer to begin.</p>}
                      {!isClient && <p>Loading route...</p>}
                 </div>
@@ -576,5 +617,3 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     </div>
   );
 }
-
-    
