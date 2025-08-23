@@ -18,6 +18,11 @@ export function PlanningCalendar() {
     const { customers } = useCustomers();
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [searchTerm, setSearchTerm] = React.useState("");
+    const [isClient, setIsClient] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     const selectedDate = date || new Date();
     const customersForSelectedDate = getRouteForDate(selectedDate);
@@ -28,7 +33,7 @@ export function PlanningCalendar() {
         .filter(c => !customersForSelectedDate.includes(c.id))
         .filter(c => 
             c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            c.town.toLowerCase().includes(searchTerm.toLowerCase())
+            (c.town && c.town.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     
     return (
@@ -66,10 +71,10 @@ export function PlanningCalendar() {
                     </h3>
                     <div className="grid grid-cols-2 gap-6 flex-1">
                         <div className="flex flex-col">
-                           <h4 className="font-medium mb-2">On Route ({customersOnRoute.length})</h4>
+                           <h4 className="font-medium mb-2">On Route ({isClient ? customersOnRoute.length : 0})</h4>
                             <ScrollArea className="flex-1 -mr-4">
                                 <div className='pr-4 space-y-2'>
-                                {customersOnRoute.length > 0 ? (
+                                {isClient && customersOnRoute.length > 0 ? (
                                     customersOnRoute.map(customer => (
                                     <div key={customer.id} className="p-2 rounded-md bg-muted flex items-center justify-between">
                                         <p className="font-medium text-sm">{customer.name}</p>
@@ -79,7 +84,9 @@ export function PlanningCalendar() {
                                     </div>
                                 ))
                                 ) : (
-                                    <p className="text-muted-foreground text-sm text-center pt-8">No customers planned for this day.</p>
+                                    <p className="text-muted-foreground text-sm text-center pt-8">
+                                        {isClient ? "No customers planned for this day." : "Loading..."}
+                                    </p>
                                 )}
                                 </div>
                            </ScrollArea>
@@ -97,7 +104,7 @@ export function PlanningCalendar() {
                             </div>
                             <ScrollArea className="flex-1 -mr-4">
                                 <div className='pr-4 space-y-2'>
-                                    {customersNotOnRoute.map(customer => (
+                                    {isClient && customersNotOnRoute.map(customer => (
                                         <div key={customer.id} className="p-2 rounded-md border flex items-center justify-between">
                                             <div>
                                                 <p className="font-medium text-sm">{customer.name}</p>
@@ -108,6 +115,7 @@ export function PlanningCalendar() {
                                             </Button>
                                         </div>
                                     ))}
+                                    {!isClient && <p className="text-muted-foreground text-sm text-center pt-8">Loading...</p>}
                                 </div>
                             </ScrollArea>
                         </div>
