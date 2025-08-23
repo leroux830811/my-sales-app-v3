@@ -67,6 +67,11 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const [productSearch, setProductSearch] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraPurpose, setCameraPurpose] = useState<'storefront' | 'interaction' | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   
@@ -329,7 +334,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
         <CardHeader>
            {mode === 'route' ? (
                 <>
-                <CardTitle>Today's Route ({routeCustomers.length})</CardTitle>
+                <CardTitle>Today's Route ({isClient ? routeCustomers.length : 0})</CardTitle>
                 <CardDescription>This list is pre-populated from your monthly plan. Select a customer to begin.</CardDescription>
                 </>
            ) : (
@@ -348,11 +353,11 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
                         role="combobox"
                         aria-expanded={open}
                         className="w-full justify-between md:w-1/2"
-                        disabled={mode === 'route' && routeCustomers.length === 0}
+                        disabled={mode === 'route' && routeCustomers.length === 0 && isClient}
                     >
                         {selectedCustomerId
                         ? customers.find((customer) => customer.id === selectedCustomerId)?.name
-                        : mode === 'route' ? (routeCustomers.length > 0 ? "Select from today's route..." : "All customers for today completed!") : "Select a customer..."}
+                        : mode === 'route' ? (isClient && routeCustomers.length > 0 ? "Select from today's route..." : "All customers for today completed!") : "Select a customer..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                     </PopoverTrigger>
@@ -553,10 +558,11 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
        {!selectedCustomer && (
             <Card className="flex items-center justify-center h-96">
                 <div className="text-center text-muted-foreground">
-                     {mode === 'route' && todaysRoute.length > 0 && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
-                     {mode === 'route' && todaysRoute.length === 0 ? <p>You have no customers planned for today.</p> : null}
-                     {mode === 'route' && todaysRoute.length > 0 && routeCustomers.length === 0 ? <p>Congratulations! You've completed all calls for today.</p> : null}
-                     {mode === 'all' && <p>Select a customer to begin.</p>}
+                     {isClient && mode === 'route' && todaysRoute.length > 0 && routeCustomers.length > 0 ? <p>Select a customer from your route to begin.</p> : null}
+                     {isClient && mode === 'route' && todaysRoute.length === 0 ? <p>You have no customers planned for today.</p> : null}
+                     {isClient && mode === 'route' && todaysRoute.length > 0 && routeCustomers.length === 0 ? <p>Congratulations! You've completed all calls for today.</p> : null}
+                     {isClient && mode === 'all' && <p>Select a customer to begin.</p>}
+                     {!isClient && <p>Loading route...</p>}
                 </div>
             </Card>
         )}
