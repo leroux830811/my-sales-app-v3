@@ -129,7 +129,25 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     setOrder(new Map()); // Reset order when customer changes
     setStockReturnItems(new Map()); // Reset returns
     setStockReturnReason("");
-    setProductChecklist(new Map());
+
+    // Pre-populate checklist from last interaction
+    const customerInteractions = interactions
+      .filter(i => i.customerId === customerId && i.notes.includes('*Product Stock Check:*'))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const newChecklist = new Map<string, boolean>();
+    if (customerInteractions.length > 0) {
+        const lastChecklistNote = customerInteractions[0].notes;
+        const checklistSection = lastChecklistNote.split('*Product Stock Check:*')[1];
+        if(checklistSection) {
+            products.forEach(product => {
+                if (checklistSection.includes(`- ${product.name}: In Stock`)) {
+                    newChecklist.set(product.id, true);
+                }
+            });
+        }
+    }
+    setProductChecklist(newChecklist);
     setOpen(false);
   };
 
@@ -166,7 +184,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
         noteToSave += checklistText;
     }
     
-    if (!noteToSave.trim()) {
+    if (!noteToSave.trim() && checkedProducts.length === 0) {
         toast({
             title: "Note is empty",
             description: "Please write a note or check a product before saving.",
