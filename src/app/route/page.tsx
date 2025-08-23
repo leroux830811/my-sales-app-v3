@@ -1,6 +1,7 @@
 
 "use client";
 
+import React, { useState, useEffect } from "react";
 import CustomerRouteClient from "@/components/customer-route-client";
 import { useRoute } from "@/context/route-context";
 import { useCustomers } from "@/context/customer-context";
@@ -16,6 +17,12 @@ import {
 export default function RoutePage() {
   const { getTodaysRoute } = useRoute();
   const { customers } = useCustomers();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const todaysRouteIds = getTodaysRoute();
   const todaysCustomers = customers.filter(c => todaysRouteIds.includes(c.id));
@@ -25,7 +32,7 @@ export default function RoutePage() {
       <div className="flex items-center justify-between space-y-2">
         <div className="flex items-center gap-4">
             <h2 className="text-3xl font-bold tracking-tight">Start Call</h2>
-            {todaysCustomers.length > 0 && (
+            {isClient && todaysCustomers.length > 0 && (
                  <TooltipProvider>
                     <div className="flex items-center -space-x-2">
                         {todaysCustomers.map(customer => (
