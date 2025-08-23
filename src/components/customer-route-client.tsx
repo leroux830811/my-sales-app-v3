@@ -73,6 +73,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
   const [stockReturnItems, setStockReturnItems] = useState<Map<string, number>>(new Map());
   const [stockReturnReason, setStockReturnReason] = useState("");
   const [productSearch, setProductSearch] = useState("");
+  const [checklistProductSearch, setChecklistProductSearch] = useState("");
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraPurpose, setCameraPurpose] = useState<'storefront' | 'interaction' | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -100,6 +101,10 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
     (product.name || "").toLowerCase().includes(productSearch.toLowerCase())
   );
   
+  const filteredChecklistProducts = products.filter(product =>
+    (product.name || "").toLowerCase().includes(checklistProductSearch.toLowerCase())
+  );
+
   const customerList = mode === 'route' ? uncompletedRouteCustomers : customers;
 
   useEffect(() => {
@@ -409,7 +414,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
         <CardHeader>
            {mode === 'route' ? (
                 <>
-                <CardTitle>Today's Route ({isClient ? uncompletedRouteCustomers.length : 0})</CardTitle>
+                <CardTitle>Today's Route ({isClient ? uncompletedRouteCustomers.length : '...'})</CardTitle>
                 <CardDescription>This list is pre-populated from your monthly plan. Select a customer to begin.</CardDescription>
                 </>
            ) : (
@@ -528,9 +533,19 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                                         />
                                         <Separator className="my-4"/>
                                         <h3 className="font-semibold mb-2">Product Checklist</h3>
-                                        <ScrollArea className="h-48 border rounded-md p-4">
+                                         <div className="relative mb-2">
+                                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                type="search"
+                                                placeholder="Search product list..."
+                                                className="w-full pl-8 h-9"
+                                                value={checklistProductSearch}
+                                                onChange={(e) => setChecklistProductSearch(e.target.value)}
+                                            />
+                                        </div>
+                                        <ScrollArea className="h-40 border rounded-md p-4">
                                             <div className="space-y-3">
-                                                {products.map(product => (
+                                                {filteredChecklistProducts.map(product => (
                                                      <div key={product.id} className="flex items-center space-x-2">
                                                         <Checkbox 
                                                             id={`product-${product.id}`} 
@@ -540,6 +555,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                                                         <Label htmlFor={`product-${product.id}`} className="font-normal cursor-pointer">{product.name}</Label>
                                                     </div>
                                                 ))}
+                                                {filteredChecklistProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
                                             </div>
                                         </ScrollArea>
                                          <Separator className="my-4"/>
