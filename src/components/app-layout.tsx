@@ -27,6 +27,7 @@ import {
   Camera,
   Settings,
   MapPin,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useTheme } from "@/context/theme-context";
@@ -36,6 +37,11 @@ const menuItems = [
     href: "/",
     label: "Dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/planning",
+    label: "Monthly Planning",
+    icon: CalendarDays,
   },
   {
     href: "/route",
