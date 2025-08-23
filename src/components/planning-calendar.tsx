@@ -9,19 +9,27 @@ import { format } from 'date-fns';
 import { useCustomers } from '@/context/customer-context';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, Search } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { Input } from './ui/input';
 
 export function PlanningCalendar() {
     const { plannedRoutes, addCustomerToDate, removeCustomerFromDate, getRouteForDate } = useRoute();
     const { customers } = useCustomers();
     const [date, setDate] = React.useState<Date | undefined>(new Date());
+    const [searchTerm, setSearchTerm] = React.useState("");
 
     const selectedDate = date || new Date();
     const customersForSelectedDate = getRouteForDate(selectedDate);
 
     const customersOnRoute = customers.filter(c => customersForSelectedDate.includes(c.id));
-    const customersNotOnRoute = customers.filter(c => !customersForSelectedDate.includes(c.id));
+    
+    const customersNotOnRoute = customers
+        .filter(c => !customersForSelectedDate.includes(c.id))
+        .filter(c => 
+            c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            c.town.toLowerCase().includes(searchTerm.toLowerCase())
+        );
     
     return (
         <Card className="h-full flex flex-col">
@@ -77,12 +85,24 @@ export function PlanningCalendar() {
                            </ScrollArea>
                         </div>
                         <div className='flex flex-col'>
-                            <h4 className="font-medium mb-2">All Customers ({customersNotOnRoute.length})</h4>
+                            <div className="relative mb-2">
+                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                 <Input 
+                                    type="search"
+                                    placeholder="Search by name or town..."
+                                    className="w-full pl-8 h-9"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                 />
+                            </div>
                             <ScrollArea className="flex-1 -mr-4">
                                 <div className='pr-4 space-y-2'>
                                     {customersNotOnRoute.map(customer => (
                                         <div key={customer.id} className="p-2 rounded-md border flex items-center justify-between">
-                                            <p className="font-medium text-sm">{customer.name}</p>
+                                            <div>
+                                                <p className="font-medium text-sm">{customer.name}</p>
+                                                <p className="text-xs text-muted-foreground">{customer.town}</p>
+                                            </div>
                                             <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => addCustomerToDate(customer.id, selectedDate)}>
                                                 <PlusCircle className="h-4 w-4" />
                                             </Button>
