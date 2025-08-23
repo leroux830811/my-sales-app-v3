@@ -5,15 +5,21 @@ import React, { createContext, useContext, useState, ReactNode, useCallback } fr
 import useLocalStorage from '@/hooks/use-local-storage';
 import { format } from 'date-fns';
 
+export type RouteCustomer = {
+  id: string;
+  completed: boolean;
+};
+
 // The key is a date string in 'yyyy-MM-dd' format
-export type PlannedRoutes = Record<string, string[]>;
+export type PlannedRoutes = Record<string, RouteCustomer[]>;
 
 type RouteContextType = {
   plannedRoutes: PlannedRoutes;
-  getRouteForDate: (date: Date) => string[];
+  getRouteForDate: (date: Date) => RouteCustomer[];
   addCustomerToDate: (customerId: string, date: Date) => void;
   removeCustomerFromDate: (customerId: string, date: Date) => void;
-  getTodaysRoute: () => string[];
+  getTodaysRoute: () => RouteCustomer[];
+  markCustomerAsCompleted: (customerId: string, date?: Date) => void;
 };
 
 const RouteContext = createContext<RouteContextType | undefined>(undefined);
@@ -21,26 +27,25 @@ const RouteContext = createContext<RouteContextType | undefined>(undefined);
 export function RouteProvider({ children }: { children: ReactNode }) {
   const [plannedRoutes, setPlannedRoutes] = useLocalStorage<PlannedRoutes>('plannedRoutes', {});
 
-  const getRouteForDate = useCallback((date: Date): string[] => {
+  const getRouteForDate = useCallback((date: Date): RouteCustomer[] => {
     const dateKey = format(date, 'yyyy-MM-dd');
     return plannedRoutes[dateKey] || [];
   }, [plannedRoutes]);
   
-  const getTodaysRoute = useCallback((): string[] => {
-    const dateKey = format(new Date(), 'yyyy-MM-dd');
-    return plannedRoutes[dateKey] || [];
-  }, [plannedRoutes]);
+  const getTodaysRoute = useCallback((): RouteCustomer[] => {
+    return getRouteForDate(new Date());
+  }, [getRouteForDate]);
 
   const addCustomerToDate = useCallback((customerId: string, date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     setPlannedRoutes(prev => {
         const currentRoute = prev[dateKey] || [];
-        if (currentRoute.includes(customerId)) {
+        if (currentRoute.find(c => c.id === customerId)) {
             return prev; // Already in the route for this date
         }
         return {
             ...prev,
-            [dateKey]: [...currentRoute, customerId]
+            [dateKey]: [...currentRoute, { id: customerId, completed: false }]
         };
     });
   }, [setPlannedRoutes]);
@@ -49,7 +54,7 @@ export function RouteProvider({ children }: { children: ReactNode }) {
     const dateKey = format(date, 'yyyy-MM-dd');
     setPlannedRoutes(prev => {
         const currentRoute = prev[dateKey] || [];
-        const newRoute = currentRoute.filter(id => id !== customerId);
+        const newRoute = currentRoute.filter(c => c.id !== customerId);
         if (newRoute.length > 0) {
             return { ...prev, [dateKey]: newRoute };
         } else {
@@ -60,8 +65,23 @@ export function RouteProvider({ children }: { children: ReactNode }) {
     });
   }, [setPlannedRoutes]);
 
+   const markCustomerAsCompleted = useCallback((customerId: string, date: Date = new Date()) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    setPlannedRoutes(prev => {
+      const currentRoute = prev[dateKey] || [];
+      if (!currentRoute.find(c => c.id === customerId)) {
+        return prev; // Customer not on today's route, do nothing.
+      }
+      const newRoute = currentRoute.map(c => 
+        c.id === customerId ? { ...c, completed: true } : c
+      );
+      return { ...prev, [dateKey]: newRoute };
+    });
+  }, [setPlannedRoutes]);
+
+
   return (
-    <RouteContext.Provider value={{ plannedRoutes, getRouteForDate, addCustomerToDate, removeCustomerFromDate, getTodaysRoute }}>
+    <RouteContext.Provider value={{ plannedRoutes, getRouteForDate, addCustomerToDate, removeCustomerFromDate, getTodaysRoute, markCustomerAsCompleted }}>
       {children}
     </RouteContext.Provider>
   );

@@ -25,7 +25,7 @@ export function PlanningCalendar() {
     }, []);
 
     const selectedDate = date || new Date();
-    const customersForSelectedDate = getRouteForDate(selectedDate);
+    const customersForSelectedDate = getRouteForDate(selectedDate).map(rc => rc.id);
 
     const customersOnRoute = customers.filter(c => customersForSelectedDate.includes(c.id));
     

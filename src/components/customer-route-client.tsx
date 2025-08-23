@@ -53,7 +53,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
   const { addOrder } = useOrders();
   const { addPhoto } = usePhotos();
   const { reminders } = useReminders();
-  const { getTodaysRoute } = useRoute();
+  const { getTodaysRoute, markCustomerAsCompleted } = useRoute();
   const { addStockReturn } = useStockReturns();
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -70,10 +70,10 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
 
   const selectedCustomer = customers && customers.find((c) => c.id === selectedCustomerId);
   
-  const routeCustomerIds = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
+  const routeCustomerData = useMemo(() => getTodaysRoute(), [getTodaysRoute]);
   const routeCustomers = useMemo(() => {
-    return customers.filter(c => routeCustomerIds.includes(c.id));
-  }, [customers, routeCustomerIds]);
+    return customers.filter(c => routeCustomerData.some(rc => rc.id === c.id));
+  }, [customers, routeCustomerData]);
 
   const customerInteractions = interactions
     .filter(i => i.customerId === selectedCustomerId)
@@ -110,6 +110,12 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     setOpen(false);
   };
 
+  const handleInteractionCompletion = () => {
+    if (selectedCustomerId && mode === 'route') {
+      markCustomerAsCompleted(selectedCustomerId);
+    }
+  }
+
   const handleSaveNote = (type: Interaction['type'], text: string, setText: (value: string) => void) => {
     if (!selectedCustomerId || !text.trim()) {
         toast({
@@ -128,7 +134,8 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     toast({
         title: "Note Saved",
         description: `Your ${type === 'Meeting' ? 'interaction' : 'competitor note'} has been logged.`
-    })
+    });
+    handleInteractionCompletion();
   };
 
   const handleUpdateItemQuantity = (
@@ -181,6 +188,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
 
     toast({ title: "Order Sent & Saved", description: "The order has been saved and formatted for WhatsApp." });
     setOrder(new Map());
+    handleInteractionCompletion();
   };
   
   const handleProcessReturn = () => {
@@ -218,6 +226,7 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     toast({ title: "Return Processed & Saved", description: "The stock return has been saved and formatted for WhatsApp." });
     setStockReturnItems(new Map());
     setStockReturnReason("");
+    handleInteractionCompletion();
   }
 
 
@@ -546,5 +555,3 @@ export default function CustomerRouteClient({ mode }: CustomerRouteClientProps) 
     </div>
   );
 }
-
-    
