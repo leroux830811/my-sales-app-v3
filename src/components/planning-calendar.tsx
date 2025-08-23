@@ -56,7 +56,7 @@ export function PlanningCalendar() {
                                 return (
                                     <div className="relative h-full w-full flex items-center justify-center">
                                         <span>{format(date, 'd')}</span>
-                                        {dayRoute && dayRoute.length > 0 && (
+                                        {isClient && dayRoute && dayRoute.length > 0 && (
                                              <div className="absolute bottom-1 w-2 h-2 rounded-full bg-primary" />
                                         )}
                                     </div>
