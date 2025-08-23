@@ -4,9 +4,9 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2, ChevronRight } from "lucide-react";
+import { FileDown, MoreHorizontal, Search, User, Mail, Phone, MapPin, Trash2, ChevronRight, Zap } from "lucide-react";
 import { type Customer } from "@/lib/data";
-import { interactions } from "@/lib/data";
+import { type Interaction } from "@/lib/data";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { exportToExcel } from '@/lib/excel';
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { useInteractions } from '@/context/interaction-context';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 export default function CustomersPage() {
   const { customers, updateCustomerField, updateCustomerStatus, deleteCustomer } = useCustomers();
+  const { interactions } = useInteractions();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -45,6 +49,17 @@ export default function CustomersPage() {
         return "secondary";
       case "Lead":
         return "outline";
+    }
+  }
+
+  const getInteractionBadgeVariant = (type: Interaction['type']): "secondary" | "outline" | "destructive" => {
+    switch (type) {
+        case 'Competitor Activity':
+            return 'destructive';
+        case 'Email':
+            return 'secondary';
+        default:
+            return 'outline';
     }
   }
 
@@ -87,6 +102,10 @@ export default function CustomersPage() {
     (customer.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (customer.town?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  const customerInteractions = selectedCustomer ? interactions
+    .filter(i => i.customerId === selectedCustomer.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -233,7 +252,8 @@ export default function CustomersPage() {
                                 </div>
                             </div>
                         </SheetHeader>
-                        <div className="space-y-4 flex-1 overflow-y-auto pr-4">
+                        <ScrollArea className="flex-1 -mr-6">
+                        <div className="space-y-4 pr-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name"><User className="inline-block mr-2 h-4 w-4" />Customer Name</Label>
                                 <Input id="name" defaultValue={selectedCustomer.name} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'name', e.target.value)} />
@@ -274,8 +294,27 @@ export default function CustomersPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                            <Separator />
+                             <div>
+                                <h4 className="font-semibold mb-4">Interaction History</h4>
+                                <div className="space-y-4">
+                                    {customerInteractions.length > 0 ? customerInteractions.map(interaction => (
+                                        <div key={interaction.id} className="text-sm">
+                                            <div className="flex justify-between items-center">
+                                                <p className="font-medium">{format(new Date(interaction.date), "PPP p")}</p>
+                                                <Badge variant={getInteractionBadgeVariant(interaction.type)}>
+                                                    {interaction.type === 'Competitor Activity' && <Zap className="mr-1 h-3 w-3" />}
+                                                    {interaction.type}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-muted-foreground whitespace-pre-wrap pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
+                                        </div>
+                                    )) : <p className="text-muted-foreground text-sm text-center">No interactions logged yet.</p>}
+                                </div>
+                            </div>
                         </div>
-                        <SheetFooter className="pt-4">
+                        </ScrollArea>
+                        <SheetFooter className="pt-4 mt-auto">
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button variant="destructive" className="w-full">
@@ -308,3 +347,5 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+    
