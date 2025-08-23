@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,6 +23,12 @@ export default function DashboardPage() {
   const { products } = useProducts();
   const { orders } = useOrders();
   const { reminders } = useReminders();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const getOrderTotal = (orderItems: Map<string, number>) => {
     let total = 0;
@@ -80,7 +88,7 @@ export default function DashboardPage() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">R{totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div className="text-2xl font-bold">R{isClient ? totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>
                 <p className="text-xs text-muted-foreground">Based on completed orders</p>
                 <div className="h-[80px] w-full mt-2">
                     <ResponsiveContainer width="100%" height="100%">
@@ -104,7 +112,7 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{newCustomers}</div>
+            <div className="text-2xl font-bold">+{isClient ? newCustomers : 0}</div>
             <p className="text-xs text-muted-foreground">0% from last month</p>
           </CardContent>
         </Card>
@@ -114,7 +122,7 @@ export default function DashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{products.length}</div>
+            <div className="text-2xl font-bold">+{isClient ? products.length : 0}</div>
             <p className="text-xs text-muted-foreground">0% from last month</p>
           </CardContent>
         </Card>
@@ -124,7 +132,7 @@ export default function DashboardPage() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{interactionCount}</div>
+            <div className="text-2xl font-bold">+{isClient ? interactionCount : 0}</div>
             <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
@@ -136,7 +144,7 @@ export default function DashboardPage() {
             <CardTitle>Recent Interactions</CardTitle>
           </CardHeader>
           <CardContent>
-            {interactions.length > 0 ? (
+            {isClient && interactions.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -178,7 +186,7 @@ export default function DashboardPage() {
               </Table>
             ) : (
               <div className="flex items-center justify-center h-48">
-                <p className="text-muted-foreground">No recent interactions.</p>
+                <p className="text-muted-foreground">{isClient && interactions.length === 0 ? "No recent interactions." : "Loading..."}</p>
               </div>
             )}
           </CardContent>
@@ -190,7 +198,7 @@ export default function DashboardPage() {
                 <CardTitle>Upcoming Reminders</CardTitle>
             </CardHeader>
             <CardContent>
-                {upcomingReminders.length > 0 ? (
+                {isClient && upcomingReminders.length > 0 ? (
                 <div className="space-y-4">
                     {upcomingReminders.slice(0, 5).map(reminder => {
                     const customer = customers.find(c => c.id === reminder.customerId);
@@ -210,7 +218,7 @@ export default function DashboardPage() {
                 </div>
                 ) : (
                     <div className="flex items-center justify-center h-48">
-                        <p className="text-muted-foreground">No upcoming reminders.</p>
+                        <p className="text-muted-foreground">{isClient && upcomingReminders.length === 0 ? "No upcoming reminders." : "Loading..."}</p>
                     </div>
                 )}
             </CardContent>
@@ -220,3 +228,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
