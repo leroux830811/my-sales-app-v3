@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Users, Activity, Bell, Package, Zap } from "lucide-react";
+import { DollarSign, Users, Activity, Bell, Package, Zap, User, Mail, Phone, MapPin, Trash2 } from "lucide-react";
 import { format, subDays, startOfDay } from "date-fns";
 import { useCustomers } from "@/context/customer-context";
 import { useInteractions } from "@/context/interaction-context";
@@ -15,20 +15,31 @@ import { useProducts } from "@/context/product-context";
 import { useOrders } from "@/context/order-context";
 import { useReminders } from "@/context/reminder-context";
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import type { Interaction } from "@/lib/data";
+import type { Customer, Interaction } from "@/lib/data";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function DashboardPage() {
-  const { customers } = useCustomers();
+  const { customers, updateCustomerField, updateCustomerStatus, deleteCustomer } = useCustomers();
   const { interactions } = useInteractions();
   const { products } = useProducts();
   const { orders } = useOrders();
   const { reminders } = useReminders();
+  const { toast } = useToast();
+  
   const [isClient, setIsClient] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
 
   const getOrderTotal = (orderItems: Map<string, number>) => {
     let total = 0;
@@ -49,6 +60,17 @@ export default function DashboardPage() {
             return 'secondary';
         default:
             return 'outline';
+    }
+  }
+  
+  const getStatusVariant = (status: "Active" | "Inactive" | "Lead") => {
+    switch (status) {
+      case "Active":
+        return "default";
+      case "Inactive":
+        return "secondary";
+      case "Lead":
+        return "outline";
     }
   }
 
@@ -74,6 +96,34 @@ export default function DashboardPage() {
   const newCustomers = customers.filter(c => c.status === 'Lead').length;
   const interactionCount = interactions.length;
   const upcomingReminders = reminders.filter(r => !r.isComplete);
+  
+  const customerInteractions = selectedCustomer ? interactions
+    .filter(i => i.customerId === selectedCustomer.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
+    
+  const handleFieldChange = (customerId: string, field: keyof Omit<Customer, 'id' | 'status'>, value: string) => {
+    updateCustomerField(customerId, field, value);
+    // Also update the selected customer in state so the sheet reflects the change instantly
+    if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({...selectedCustomer, [field]: value});
+    }
+  };
+  
+  const handleStatusChange = (customerId: string, status: Customer['status']) => {
+    updateCustomerStatus(customerId, status);
+    if (selectedCustomer && selectedCustomer.id === customerId) {
+        setSelectedCustomer({...selectedCustomer, status: status});
+    }
+  }
+  
+  const handleDeleteCustomer = (customerId: string) => {
+    deleteCustomer(customerId);
+    setSelectedCustomer(null);
+    toast({
+      title: "Customer Deleted",
+      description: "The customer has been permanently removed.",
+    });
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6 bg-[hsl(var(--muted))]">
@@ -158,7 +208,7 @@ export default function DashboardPage() {
                   {interactions.slice(0, 5).map(interaction => {
                     const customer = customers.find(c => c.id === interaction.customerId);
                     return (
-                      <TableRow key={interaction.id}>
+                      <TableRow key={interaction.id} onClick={() => customer && setSelectedCustomer(customer)} className="cursor-pointer">
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar>
@@ -225,6 +275,117 @@ export default function DashboardPage() {
             </Card>
         </Link>
       </div>
+      
+       <Sheet open={!!selectedCustomer} onOpenChange={(isOpen) => !isOpen && setSelectedCustomer(null)}>
+            <SheetContent className="sm:max-w-lg w-full flex flex-col">
+                {selectedCustomer && (
+                    <>
+                        <SheetHeader className="pb-4">
+                             <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={`https://placehold.co/64x64.png?text=${selectedCustomer.name.charAt(0)}`} />
+                                    <AvatarFallback>{selectedCustomer.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <SheetTitle className="text-2xl">{selectedCustomer.name}</SheetTitle>
+                                    <SheetDescription asChild>
+                                        <Badge variant={getStatusVariant(selectedCustomer.status)}>{selectedCustomer.status}</Badge>
+                                    </SheetDescription>
+                                </div>
+                            </div>
+                        </SheetHeader>
+                        <ScrollArea className="flex-1 -mr-6">
+                        <div className="space-y-4 pr-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="name"><User className="inline-block mr-2 h-4 w-4" />Customer Name</Label>
+                                <Input id="name" defaultValue={selectedCustomer.name} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'name', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="contactPerson"><User className="inline-block mr-2 h-4 w-4" />Contact Person</Label>
+                                <Input id="contactPerson" defaultValue={selectedCustomer.contactPerson} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'contactPerson', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="town"><MapPin className="inline-block mr-2 h-4 w-4" />Town</Label>
+                                <Input id="town" defaultValue={selectedCustomer.town} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'town', e.target.value)} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="address"><MapPin className="inline-block mr-2 h-4 w-4" />Address</Label>
+                                <Input id="address" defaultValue={selectedCustomer.address} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'address', e.target.value)} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="phone"><Phone className="inline-block mr-2 h-4 w-4" />Phone</Label>
+                                <Input id="phone" defaultValue={selectedCustomer.phone} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'phone', e.target.value)} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="email"><Mail className="inline-block mr-2 h-4 w-4" />Email</Label>
+                                <Input id="email" defaultValue={selectedCustomer.email} onBlur={(e) => handleFieldChange(selectedCustomer.id, 'email', e.target.value)} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="status"><Badge className="mr-2" />Status</Label>
+                                <Select
+                                    defaultValue={selectedCustomer.status}
+                                    onValueChange={(value: Customer['status']) => handleStatusChange(selectedCustomer.id, value)}
+                                >
+                                    <SelectTrigger id="status" className="w-full">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Inactive">Inactive</SelectItem>
+                                    <SelectItem value="Lead">Lead</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Separator />
+                             <div>
+                                <h4 className="font-semibold mb-4">Interaction History</h4>
+                                <div className="space-y-4">
+                                    {customerInteractions.length > 0 ? customerInteractions.map(interaction => (
+                                        <div key={interaction.id} className="text-sm">
+                                            <div className="flex justify-between items-center">
+                                                <p className="font-medium">{format(new Date(interaction.date), "PPP p")}</p>
+                                                <Badge variant={getInteractionBadgeVariant(interaction.type)}>
+                                                    {interaction.type === 'Competitor Activity' && <Zap className="mr-1 h-3 w-3" />}
+                                                    {interaction.type}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-muted-foreground whitespace-pre-wrap pl-2 border-l-2 ml-2 mt-1">{interaction.notes}</p>
+                                        </div>
+                                    )) : <p className="text-muted-foreground text-sm text-center">No interactions logged yet.</p>}
+                                </div>
+                            </div>
+                        </div>
+                        </ScrollArea>
+                        <SheetFooter className="pt-4 mt-auto">
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" className="w-full">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete Customer
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently delete the customer and all their associated data from the app.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        className="bg-destructive hover:bg-destructive/90"
+                                        onClick={() => handleDeleteCustomer(selectedCustomer.id)}
+                                    >
+                                        Yes, delete customer
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </SheetFooter>
+                    </>
+                )}
+            </SheetContent>
+        </Sheet>
     </div>
   );
 }
