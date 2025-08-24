@@ -124,7 +124,30 @@ body {
     --sidebar-accent-foreground: 144.9 80.4% 97.3%;
     --ring: 142.1 76.2% 36.3%;
   }
+  
+  .theme-orange {
+    --primary: 24.6 95% 53.1%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --accent: 24.6 95% 53.1%;
+    --accent-foreground: 60 9.1% 97.8%;
+    --sidebar-primary: 24.6 95% 53.1%;
+    --sidebar-primary-foreground: 60 9.1% 97.8%;
+    --sidebar-accent: 24.6 95% 53.1%;
+    --sidebar-accent-foreground: 60 9.1% 97.8%;
+    --ring: 24.6 95% 53.1%;
+  }
 
+  .theme-violet {
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --accent: 262.1 83.3% 57.8%;
+    --accent-foreground: 60 9.1% 97.8%;
+    --sidebar-primary: 262.1 83.3% 57.8%;
+    --sidebar-primary-foreground: 60 9.1% 97.8%;
+    --sidebar-accent: 262.1 83.3% 57.8%;
+    --sidebar-accent-foreground: 60 9.1% 97.8%;
+    --ring: 262.1 83.3% 57.8%;
+  }
 }
 
 @layer base {

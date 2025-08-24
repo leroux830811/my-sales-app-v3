@@ -93,7 +93,7 @@ const KameeldoringTreeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { theme, logo, setLogo } = useTheme();
+  const { logo, setLogo, sidebarLayout, sidebarBehavior } = useTheme();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleLogoClick = () => {
@@ -124,7 +124,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         accept="image/*"
         onChange={handleLogoChange}
       />
-      <Sidebar>
+      <Sidebar variant={sidebarLayout} collapsible={sidebarBehavior}>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
             <Button variant="ghost" size="icon" className="h-12 w-12" onClick={handleLogoClick}>

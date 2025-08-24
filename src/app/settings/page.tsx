@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product } from '@/lib/data';
-import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon } from 'lucide-react';
+import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon, SlidersHorizontal, ArrowLeftRight } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/context/theme-context';
@@ -29,7 +29,14 @@ export default function SettingsPage() {
     const { orders } = useOrders();
     const { interactions } = useInteractions();
     const { reminders } = useReminders();
-    const { theme, setTheme } = useTheme();
+    const { 
+        theme, 
+        setTheme,
+        sidebarLayout,
+        setSidebarLayout,
+        sidebarBehavior,
+        setSidebarBehavior
+    } = useTheme();
     const { toast } = useToast();
 
     // Add Customer State
@@ -259,9 +266,36 @@ export default function SettingsPage() {
                     <CardHeader><CardTitle>Appearance</CardTitle><CardDescription>Customize the look and feel.</CardDescription></CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="theme" className="flex items-center gap-2"><Palette className="h-4 w-4" /> App Theme</Label>
+                            <Label htmlFor="theme" className="flex items-center gap-2"><Palette className="h-4 w-4" /> Color Theme</Label>
                             <Select value={theme} onValueChange={setTheme}><SelectTrigger id="theme" className="w-[180px]"><SelectValue /></SelectTrigger>
-                                <SelectContent><SelectItem value="theme-default">Default</SelectItem><SelectItem value="theme-zinc">Zinc</SelectItem><SelectItem value="theme-rose">Rose</SelectItem><SelectItem value="theme-blue">Blue</SelectItem><SelectItem value="theme-green">Green</SelectItem></SelectContent>
+                                <SelectContent>
+                                    <SelectItem value="theme-default">Default</SelectItem>
+                                    <SelectItem value="theme-zinc">Zinc</SelectItem>
+                                    <SelectItem value="theme-rose">Rose</SelectItem>
+                                    <SelectItem value="theme-blue">Blue</SelectItem>
+                                    <SelectItem value="theme-green">Green</SelectItem>
+                                    <SelectItem value="theme-orange">Orange</SelectItem>
+                                    <SelectItem value="theme-violet">Violet</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <Label htmlFor="sidebar-layout" className="flex items-center gap-2"><SlidersHorizontal className="h-4 w-4" /> Sidebar Layout</Label>
+                            <Select value={sidebarLayout} onValueChange={setSidebarLayout as any}><SelectTrigger id="sidebar-layout" className="w-[180px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="sidebar">Default</SelectItem>
+                                    <SelectItem value="floating">Floating</SelectItem>
+                                    <SelectItem value="inset">Inset</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <Label htmlFor="sidebar-behavior" className="flex items-center gap-2"><ArrowLeftRight className="h-4 w-4" /> Sidebar Behavior</Label>
+                            <Select value={sidebarBehavior} onValueChange={setSidebarBehavior as any}><SelectTrigger id="sidebar-behavior" className="w-[180px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="icon">Icon</SelectItem>
+                                    <SelectItem value="offcanvas">Off-canvas</SelectItem>
+                                </SelectContent>
                             </Select>
                         </div>
                     </CardContent>
