@@ -8,6 +8,9 @@ import { Camera, PlusCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
@@ -42,6 +45,12 @@ export default function PhotosPage() {
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Take a New Photo</DialogTitle>
+                            <DialogDescription>
+                                Capture a photo to add to your gallery. You can also upload an existing image.
+                            </DialogDescription>
+                        </DialogHeader>
                         <CameraCapture onCapture={handleSavePhoto} />
                     </DialogContent>
                 </Dialog>
@@ -83,6 +92,12 @@ export default function PhotosPage() {
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-3xl">
+                                <DialogHeader>
+                                    <DialogTitle>Take a New Photo</DialogTitle>
+                                    <DialogDescription>
+                                        Capture a photo to add to your gallery. You can also upload an existing image.
+                                    </DialogDescription>
+                                </DialogHeader>
                                 <CameraCapture onCapture={handleSavePhoto} />
                             </DialogContent>
                         </Dialog>
