@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
 import type { Customer, Product, StockReturn } from '@/lib/data';
-import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon, SlidersHorizontal, ArrowLeftRight, ChevronDown } from 'lucide-react';
+import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon, SlidersHorizontal, ArrowLeftRight, ChevronDown, Trash2 } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/context/theme-context';
@@ -25,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { useStockReturns } from '@/context/stock-return-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type ReportType = 'all' | 'sales' | 'interactions' | 'returns';
 
@@ -143,6 +145,17 @@ export default function SettingsPage() {
         toast({ title: "Customer Added", description: `${newCustomer.name} has been added.` });
         setNewCustomer({ name: '', town: '', address: '', contactPerson: '', phone: '', email: '', status: 'Lead' });
         setIsAddCustomerOpen(false);
+    };
+
+    const handleRemoveAllCustomers = () => {
+        setCustomers([]);
+        // Consider removing related data like interactions, orders etc.
+        toast({ title: "All Customers Removed", description: "Your customer list has been cleared." });
+    };
+    
+    const handleRemoveAllProducts = () => {
+        setProducts([]);
+        toast({ title: "All Products Removed", description: "Your product list has been cleared." });
     };
 
     const getOrderTotal = (orderItems: Map<string, number>) => {
@@ -315,7 +328,37 @@ export default function SettingsPage() {
                                 <DialogHeader><DialogTitle>Upload Product List</DialogTitle><DialogDescription>Import from Excel. Columns: Name, Description, Price, Stock, Size.</DialogDescription></DialogHeader>
                                 <div className="grid w-full items-center gap-1.5 py-4"><Label htmlFor="product-file">Excel File</Label><Input id="product-file" type="file" accept=".xlsx, .xls" onChange={handleProductFileImport} /></div>
                                 </DialogContent>
-                            </Dialog>
+                        </Dialog>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove All Customers</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete all customer data. This action cannot be undone.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleRemoveAllCustomers}>Continue</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive"><Trash2 className="mr-2 h-4 w-4" /> Remove All Products</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete all product data. This action cannot be undone.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleRemoveAllProducts}>Continue</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </CardContent>
                 </Card>
 
