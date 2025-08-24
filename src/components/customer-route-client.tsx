@@ -570,7 +570,7 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                                                             checked={productChecklist.get(product.id) || false}
                                                             onCheckedChange={(checked) => handleProductChecklistChange(product.id, !!checked)}
                                                         />
-                                                        <Label htmlFor={`product-${product.id}`} className="font-normal cursor-pointer">{product.name}</Label>
+                                                        <Label htmlFor={`product-${product.id}`} className="font-normal cursor-pointer">{product.name} ({product.size})</Label>
                                                     </div>
                                                 ))}
                                                 {filteredChecklistProducts.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">No products found.</p>}
