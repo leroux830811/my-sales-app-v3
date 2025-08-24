@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -9,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomers } from '@/context/customer-context';
-import type { Customer, Product } from '@/lib/data';
-import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon, SlidersHorizontal, ArrowLeftRight } from 'lucide-react';
+import type { Customer, Product, StockReturn } from '@/lib/data';
+import { FilePlus, PlusCircle, Palette, Download, Calendar as CalendarIcon, SlidersHorizontal, ArrowLeftRight, ChevronDown } from 'lucide-react';
 import { useProducts } from '@/context/product-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTheme } from '@/context/theme-context';
@@ -22,6 +23,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
+import { useStockReturns } from '@/context/stock-return-context';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+type ReportType = 'all' | 'sales' | 'interactions' | 'returns';
 
 export default function SettingsPage() {
     const { customers, setCustomers } = useCustomers();
@@ -29,6 +34,7 @@ export default function SettingsPage() {
     const { orders } = useOrders();
     const { interactions } = useInteractions();
     const { reminders } = useReminders();
+    const { stockReturns } = useStockReturns();
     const { 
         theme, 
         setTheme,
@@ -147,8 +153,17 @@ export default function SettingsPage() {
         });
         return total;
     };
+    
+    const getReturnTotal = (stockReturnItems: Map<string, number>) => {
+        let total = 0;
+        stockReturnItems.forEach((quantity, productId) => {
+            const product = products.find(p => p.id === productId);
+            if (product) total += product.price * quantity;
+        });
+        return total;
+    }
 
-    const handleGenerateReport = () => {
+    const handleGenerateReport = (reportType: ReportType) => {
         if (!dateRange?.from || !dateRange?.to) {
             toast({ title: "Date range not selected", description: "Please select a start and end date.", variant: "destructive" });
             return;
@@ -156,61 +171,103 @@ export default function SettingsPage() {
 
         const startDate = startOfDay(dateRange.from);
         const endDate = startOfDay(dateRange.to);
-
-        const filteredOrders = orders.filter(o => {
-            const orderDate = startOfDay(new Date(o.date));
-            return orderDate >= startDate && orderDate <= endDate;
-        });
-
-        const salesData = filteredOrders.map(o => {
-            const customer = customers.find(c => c.id === o.customerId);
-            return {
-                'Order ID': o.id.slice(-6), 'Customer': customer?.name || 'Unknown', 'Date': format(new Date(o.date), 'yyyy-MM-dd'),
-                'Total': `R${getOrderTotal(o.items).toFixed(2)}`,
-                'Items': Array.from(o.items.entries()).map(([productId, quantity]) => {
-                    const product = products.find(p => p.id === productId);
-                    return `${product?.name || 'Unknown'} x${quantity}`;
-                }).join(', '),
-            };
-        });
-
-        const newCustomersData = customers.filter(c => {
-            if(c.id.startsWith('imported-') || c.id.startsWith('manual-')) {
-                 const timestamp = parseInt(c.id.split('-')[1]);
-                 const creationDate = startOfDay(new Date(timestamp));
-                 return creationDate >= startDate && creationDate <= endDate;
-            }
-            return false;
-        }).map(c => ({ 'Name': c.name, 'Contact Person': c.contactPerson, 'Town': c.town, 'Status': c.status, 'Email': c.email, 'Phone': c.phone }));
-        
-        const filteredInteractions = interactions.filter(i => {
-            const interactionDate = startOfDay(new Date(i.date));
-            return interactionDate >= startDate && interactionDate <= endDate;
-        }).map(i => {
-             const customer = customers.find(c => c.id === i.customerId);
-             return { 'Date': format(new Date(i.date), 'yyyy-MM-dd HH:mm'), 'Customer': customer?.name || 'Unknown', 'Type': i.type, 'Notes': i.notes };
-        });
-
-        const filteredReminders = reminders.filter(r => {
-            const reminderDate = startOfDay(new Date(r.date));
-            return reminderDate >= startDate && reminderDate <= endDate;
-        }).map(r => {
-             const customer = customers.find(c => c.id === r.customerId);
-            return { 'Date': format(new Date(r.date), 'yyyy-MM-dd'), 'Customer': r.customerId ? customer?.name : 'General', 'Notes': r.notes, 'Status': r.isComplete ? 'Complete' : 'Pending' };
-        });
-
         const wb = XLSX.utils.book_new();
-        if(salesData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(salesData), 'Sales Report');
-        if(newCustomersData.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(newCustomersData), 'New Customers');
-        if(filteredInteractions.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredInteractions), 'Interactions');
-        if(filteredReminders.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredReminders), 'Reminders');
+        let reportGenerated = false;
+
+        if (reportType === 'all' || reportType === 'sales') {
+            const filteredOrders = orders.filter(o => {
+                const orderDate = startOfDay(new Date(o.date));
+                return orderDate >= startDate && orderDate <= endDate;
+            });
+            const salesData = filteredOrders.map(o => {
+                const customer = customers.find(c => c.id === o.customerId);
+                return {
+                    'Order ID': o.id.slice(-6), 'Customer': customer?.name || 'Unknown', 'Date': format(new Date(o.date), 'yyyy-MM-dd'),
+                    'Total': getOrderTotal(o.items),
+                    'Items': Array.from(o.items.entries()).map(([productId, quantity]) => {
+                        const product = products.find(p => p.id === productId);
+                        return `${product?.name || 'Unknown'} x${quantity}`;
+                    }).join(', '),
+                };
+            });
+             if(salesData.length > 0) {
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(salesData), 'Sales Report');
+                reportGenerated = true;
+            }
+        }
         
-        if (wb.SheetNames.length === 0) {
-            toast({ title: "No Data Found", description: `No data available for the selected date range.`, variant: "destructive" });
+        if (reportType === 'all') {
+            const newCustomersData = customers.filter(c => {
+                if(c.id.startsWith('imported-') || c.id.startsWith('manual-')) {
+                     const timestamp = parseInt(c.id.split('-')[1]);
+                     const creationDate = startOfDay(new Date(timestamp));
+                     return creationDate >= startDate && creationDate <= endDate;
+                }
+                return false;
+            }).map(c => ({ 'Name': c.name, 'Contact Person': c.contactPerson, 'Town': c.town, 'Status': c.status, 'Email': c.email, 'Phone': c.phone }));
+             if(newCustomersData.length > 0) {
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(newCustomersData), 'New Customers');
+                reportGenerated = true;
+            }
+        }
+        
+        if (reportType === 'all' || reportType === 'interactions') {
+            const filteredInteractions = interactions.filter(i => {
+                const interactionDate = startOfDay(new Date(i.date));
+                return interactionDate >= startDate && interactionDate <= endDate;
+            }).map(i => {
+                 const customer = customers.find(c => c.id === i.customerId);
+                 return { 'Date': format(new Date(i.date), 'yyyy-MM-dd HH:mm'), 'Customer': customer?.name || 'Unknown', 'Type': i.type, 'Notes': i.notes };
+            });
+            if(filteredInteractions.length > 0) {
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredInteractions), 'Interactions');
+                reportGenerated = true;
+            }
+        }
+
+        if (reportType === 'all') {
+             const filteredReminders = reminders.filter(r => {
+                const reminderDate = startOfDay(new Date(r.date));
+                return reminderDate >= startDate && reminderDate <= endDate;
+            }).map(r => {
+                 const customer = customers.find(c => c.id === r.customerId);
+                return { 'Date': format(new Date(r.date), 'yyyy-MM-dd'), 'Customer': r.customerId ? customer?.name : 'General', 'Notes': r.notes, 'Status': r.isComplete ? 'Complete' : 'Pending' };
+            });
+             if(filteredReminders.length > 0) {
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filteredReminders), 'Reminders');
+                reportGenerated = true;
+            }
+        }
+
+        if (reportType === 'all' || reportType === 'returns') {
+             const filteredReturns = stockReturns.filter(sr => {
+                const returnDate = startOfDay(new Date(sr.date));
+                return returnDate >= startDate && returnDate <= endDate;
+             });
+             const returnsData = filteredReturns.map(sr => {
+                const customer = customers.find(c => c.id === sr.customerId);
+                return {
+                    'Return ID': sr.id.slice(-6), 'Customer': customer?.name || 'Unknown', 'Date': format(new Date(sr.date), 'yyyy-MM-dd'),
+                    'Reason': sr.reason,
+                    'Total Value': getReturnTotal(sr.items),
+                    'Items': Array.from(sr.items.entries()).map(([productId, quantity]) => {
+                        const product = products.find(p => p.id === productId);
+                        return `${product?.name || 'Unknown'} x${quantity}`;
+                    }).join(', '),
+                }
+             });
+            if (returnsData.length > 0) {
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(returnsData), 'Stock Returns');
+                reportGenerated = true;
+            }
+        }
+        
+        if (!reportGenerated) {
+            toast({ title: "No Data Found", description: `No data available for the selected date range and report type.`, variant: "destructive" });
             return;
         }
 
-        XLSX.writeFile(wb, `BB-Sales-Pro-report-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.xlsx`);
+        XLSX.writeFile(wb, `BB-Sales-Pro-${reportType}-report-${format(startDate, 'yyyy-MM-dd')}-to-${format(endDate, 'yyyy-MM-dd')}.xlsx`);
         toast({ title: "Report Generated", description: `Your report has been downloaded.` });
     };
 
@@ -318,10 +375,26 @@ export default function SettingsPage() {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <Button className="w-full" onClick={handleGenerateReport}><Download className="mr-2 h-4 w-4" /> Generate & Export Report</Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="w-full">
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Generate Report
+                                    <ChevronDown className="ml-auto h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                                <DropdownMenuItem onSelect={() => handleGenerateReport('all')}>Full Activity Report</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleGenerateReport('sales')}>Sales Only</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleGenerateReport('interactions')}>Interactions Only</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleGenerateReport('returns')}>Stock Returns Only</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
 }
+
+    
