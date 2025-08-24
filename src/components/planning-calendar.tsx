@@ -12,12 +12,14 @@ import { Button } from './ui/button';
 import { PlusCircle, X, Search } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function PlanningCalendar() {
     const { plannedRoutes, addCustomerToDate, removeCustomerFromDate, getRouteForDate } = useRoute();
     const { customers } = useCustomers();
     const [date, setDate] = React.useState<Date | undefined>(new Date());
     const [searchTerm, setSearchTerm] = React.useState("");
+    const [selectedTown, setSelectedTown] = React.useState<string | "all">("all");
     const [isClient, setIsClient] = React.useState(false);
 
     React.useEffect(() => {
@@ -26,14 +28,17 @@ export function PlanningCalendar() {
 
     const selectedDate = date || new Date();
     const customersForSelectedDate = getRouteForDate(selectedDate).map(rc => rc.id);
+    const uniqueTowns = Array.from(new Set(customers.map(c => c.town).filter(Boolean)));
+
 
     const customersOnRoute = customers.filter(c => customersForSelectedDate.includes(c.id));
     
     const customersNotOnRoute = customers
         .filter(c => !customersForSelectedDate.includes(c.id))
         .filter(c => 
-            c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            (c.town && c.town.toLowerCase().includes(searchTerm.toLowerCase()))
+            (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            (c.town && c.town.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+            (selectedTown === 'all' || c.town === selectedTown)
         );
     
     return (
@@ -92,15 +97,28 @@ export function PlanningCalendar() {
                            </ScrollArea>
                         </div>
                         <div className='flex flex-col'>
-                            <div className="relative mb-2">
-                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                 <Input 
-                                    type="search"
-                                    placeholder="Search by name or town..."
-                                    className="w-full pl-8 h-9"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                 />
+                            <div className="flex gap-2 mb-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        type="search"
+                                        placeholder="Search..."
+                                        className="w-full pl-8 h-9"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                                 <Select value={selectedTown} onValueChange={(value) => setSelectedTown(value)}>
+                                    <SelectTrigger className="w-[150px] h-9">
+                                        <SelectValue placeholder="Filter by town" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Towns</SelectItem>
+                                        {uniqueTowns.map(town => (
+                                            <SelectItem key={town} value={town}>{town}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <ScrollArea className="flex-1 -mr-4">
                                 <div className='pr-4 space-y-2'>
