@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "./ui/button";
-import { Camera, RefreshCcw, Check, VideoOff, Upload, CameraReverse } from "lucide-react";
+import { Camera, RefreshCcw, Check, VideoOff, Upload, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { cn } from "@/lib/utils";
@@ -173,7 +173,7 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
                             <Button onClick={handleCapture} size="lg" className="rounded-full w-20 h-20">
                                 <Camera className="h-8 w-8" />
                             </Button>
-                            <Button onClick={handleSwitchCamera} variant="outline" size="icon" className="w-16 h-16 rounded-full"><CameraReverse className="h-6 w-6" /></Button>
+                            <Button onClick={handleSwitchCamera} variant="outline" size="icon" className="w-16 h-16 rounded-full"><RefreshCw className="h-6 w-6" /></Button>
                         </>
                     )}
                  </div>
