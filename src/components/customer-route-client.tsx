@@ -32,7 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/context/product-context";
 import { Input } from "./ui/input";
 import { useOrders } from "@/context/order-context";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { CameraCapture } from "./camera-capture";
 import { usePhotos } from "@/context/photo-context";
 import { useReminders } from "@/context/reminder-context";
@@ -683,6 +683,12 @@ export default function CustomerRouteClient({ mode: initialMode }: CustomerRoute
                 </div>
             </div>
             <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>{cameraPurpose === 'storefront' ? 'Take Storefront Photo' : 'Take Interaction Photo'}</DialogTitle>
+                    <DialogDescription>
+                        {cameraPurpose === 'storefront' ? "Take a clear photo of the customer's storefront." : 'Capture a photo related to your interaction.'}
+                    </DialogDescription>
+                </DialogHeader>
                 <CameraCapture onCapture={handleSavePhoto} />
             </DialogContent>
         </Dialog>
